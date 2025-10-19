@@ -1,0 +1,201 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  MODERATOR
+  COUNSELOR
+  USER
+}
+
+enum UserStatus {
+  STUDENT
+  EMPLOYED
+}
+
+enum ChatStatus {
+  ACTIVE
+  CLOSED
+}
+
+
+model User {
+  id                  Int                  @id @default(autoincrement())
+  firstName           String
+  lastName            String
+  middleName          String?
+  suffix              String?
+  email               String               @unique
+  password            String
+  profilePic          String?
+  isTakeSurvey        Boolean              @default(false)
+  role                Role                 @default(USER)
+  isAccountVerified   Boolean              @default(false)
+  otpExpiresAt        DateTime?
+  otpCode             String?
+  profile             UserProfile?
+  responses           UserResponse[]       @relation("UserToResponses")
+  counselorInfo       CounselorProfile?
+
+  // Chat relations
+  chatSessionsAsUser      ChatSession[]    @relation("UserChatSessions")
+  chatSessionsAsCounselor ChatSession[]    @relation("CounselorChatSessions")
+  chatMessagesSent        ChatMessage[]    @relation("UserMessages")
+
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+}
+
+
+model UserProfile {
+  id                        Int            @id @default(autoincrement())
+  userId                    Int            @unique
+  gender                    String?
+  birthday                  DateTime?
+  country                   String?
+  province                  String?
+  municipality              String?
+  barangay                  String?
+  contactNo                 String?
+  guardianName              String?
+  guardianContact           String?
+  userStatus                UserStatus?
+  validId                   String?
+  selfieImage               String?
+  isFirstGenerationStudent   Boolean?       @default(false)
+  indigenousGroup            String?
+  isSingleParent             Boolean?       @default(false)
+  singleParentYears          Int?
+  isPWD                      Boolean?       @default(false)
+  disability                 String?
+  familyIncomeRange          String?
+  school                     String?
+  course                     String?
+  yearLevel                  String?
+  sectionBlock               String?
+  office                     String?
+  jobPosition                String?
+
+  user                      User            @relation(fields: [userId], references: [id])
+  responses                 UserResponse[]  @relation("ProfileToResponses")
+
+  createdAt                 DateTime        @default(now())
+  updatedAt                 DateTime        @updatedAt
+}
+
+model CounselorProfile {
+  id                    Int       @id @default(autoincrement())
+  userId                Int       @unique
+  specialization        String?
+  licenseNumber         String?
+  experienceYears       Int?
+  bio                   String?
+  availabilitySchedule  String?
+  user                  User      @relation(fields: [userId], references: [id])
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
+
+model SurveyForm {
+  id             Int              @id @default(autoincrement())
+  title          String
+  description    String?
+  code           String           @unique
+  isActive       Boolean          @default(true)
+  scoringRules   Json?
+  category       Json?
+  surveyInternal Int?
+
+  questions      SurveyQuestion[]
+  responses      UserResponse[]
+
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+model SurveyQuestion {
+  id               Int              @id @default(autoincrement())
+  surveyFormId     Int
+  questionName     String
+  questionType     String
+  options          Json?
+  isRequired       Boolean          @default(true)
+  orderQuestion    Int?
+
+  surveyForm       SurveyForm       @relation(fields: [surveyFormId], references: [id])
+  answers          SurveyAnswer[]
+
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@unique([surveyFormId, orderQuestion])
+}
+
+model UserResponse {
+  id               Int              @id @default(autoincrement())
+  userProfileId    Int
+  userId           Int              
+  surveyFormId     Int
+  attemptNumber    Int              @default(1)
+  score            Float?
+  resultCategory   String?
+  status           String           @default("inprogress")
+
+  userProfile      UserProfile      @relation("ProfileToResponses", fields: [userProfileId], references: [id])
+  user             User             @relation("UserToResponses", fields: [userId], references: [id])
+  surveyForm       SurveyForm       @relation(fields: [surveyFormId], references: [id])
+  answers          SurveyAnswer[]
+
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+}
+
+model SurveyAnswer {
+  id               Int              @id @default(autoincrement())
+  userResponseId   Int
+  surveyQuestionId Int
+  value            String?
+  numericValue     Float?
+
+  userResponse     UserResponse     @relation(fields: [userResponseId], references: [id])
+  surveyQuestion   SurveyQuestion   @relation(fields: [surveyQuestionId], references: [id])
+
+  createdAt        DateTime         @default(now())
+}
+
+
+model ChatSession {
+  id          Int          @id @default(autoincrement())
+  userId      Int
+  counselorId Int?
+  isAIChat    Boolean      @default(false)
+  topic       String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  user        User         @relation("UserChatSessions", fields: [userId], references: [id])
+  counselor   User?        @relation("CounselorChatSessions", fields: [counselorId], references: [id])
+  messages    ChatMessage[]
+}
+
+model ChatMessage {
+  id           Int         @id @default(autoincrement())
+  chatSessionId Int
+  senderId     Int?
+  content      String
+  imageUrl     String?
+  isFromAI     Boolean     @default(false)
+  createdAt    DateTime    @default(now())
+
+  chatSession  ChatSession @relation(fields: [chatSessionId], references: [id])
+  sender       User?       @relation("UserMessages", fields: [senderId], references: [id])
+}
+
+
