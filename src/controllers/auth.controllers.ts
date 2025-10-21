@@ -13,14 +13,12 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
-    const user = await auth.loginUser({ email, password }, res);
+    await auth.loginUser({ email, password }, res);
     res.status(200).json({ message: "Login successful" });
   } catch (error: any) {
     res.status(400).json({ message: error.message });
   }
 };
-
-
 
 export const verifyAccount = async (req: Request, res: Response) => {
   try {

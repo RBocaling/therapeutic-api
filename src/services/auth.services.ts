@@ -60,16 +60,16 @@ export const registerUser = async (data: any) => {
       include: { profile: true },
     });
 
-    // await sendMail(
-    //   email,
-    //   "Verify your Account",
-    //   `
-    //     <h3>Welcome, ${data.firstName}!</h3>
-    //     <p>Your One-Time Password (OTP) is:</p>
-    //     <h2 style="color:#4CAF50;">${otp}</h2>
-    //     <p>This code will expire in 10 minutes.</p>
-    //   `
-    // );
+    await sendMail(
+      email,
+      "Verify your Account",
+      `
+        <h3>Welcome, ${data.firstName}!</h3>
+        <p>Your One-Time Password (OTP) is:</p>
+        <h2 style="color:#4CAF50;">${otp}</h2>
+        <p>This code will expire in 10 minutes.</p>
+      `
+    );
 
     return user;
   });

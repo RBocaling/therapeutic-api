@@ -24,7 +24,20 @@ export const getSurveyByCode = async (req: Request, res: Response) => {
   try {
     const { code } = req.params;
     const survey = await surveyService.getSurveyByCode(code);
-    res.json(survey);
+
+    if (!survey) return res.status(404).json({ message: "Survey not found" });
+
+    const cleanedSurvey = {
+      ...survey,
+      questions: survey.questions.map((q: any) => ({
+        ...q,
+        options: Array.isArray(q.options)
+          ? q.options
+          : q.options?.options || [],
+      })),
+    };
+
+    res.json(cleanedSurvey);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
@@ -49,11 +62,22 @@ export const submitSurveyResponses = async (req: Request, res: Response) => {
 
 export const getUserSurveyResults = async (req: Request, res: Response) => {
   try {
-      const userId = req.user?.id;
-      console.log("userId", userId);
-      
-    const results = await surveyService.getUserSurveyResults(userId!);
-    res.json(results);
+    const userId = Number(req.user?.id);
+    const data = await surveyService.getUserSurveyResults(userId);
+    res.json(data);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getUserSurveyResultsByAdmin = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const userId = Number(req.params.userId);
+    const data = await surveyService.getUserSurveyResults(userId);
+    res.json(data);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }

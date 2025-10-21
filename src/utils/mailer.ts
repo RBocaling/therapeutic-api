@@ -9,10 +9,14 @@ const transporter = nodemailer.createTransport({
 });
 
 export const sendMail = async (to: string, subject: string, html: string) => {
-  await transporter.sendMail({
-    from: `"MindCare Support" <${process.env.EMAIL_USER}>`,
-    to,
-    subject,
-    html,
-  });
+  try {
+    await transporter.sendMail({
+      from: `"MindCare Support" <${process.env.EMAIL_USER}>`,
+      to,
+      subject,
+      html,
+    });
+  } catch (error: any) {
+    throw new Error(error);
+  }
 };

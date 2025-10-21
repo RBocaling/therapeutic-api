@@ -37,7 +37,18 @@ export const listSessions = async (userId: number, isCounselor: boolean) => {
     return prisma.chatSession.findMany({
       where: { counselorId: userId },
       include: {
-        user: true,
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            middleName: true,
+            email: true,
+            profilePic: true,
+            role: true,
+            isAccountVerified: true,
+          },
+        },
         messages: { take: 1, orderBy: { createdAt: "desc" } },
       },
     });
@@ -45,7 +56,18 @@ export const listSessions = async (userId: number, isCounselor: boolean) => {
     return prisma.chatSession.findMany({
       where: { userId },
       include: {
-        counselor: true,
+        counselor: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            middleName: true,
+            email: true,
+            profilePic: true,
+            role: true,
+            isAccountVerified: true,
+          },
+        },
         messages: { take: 1, orderBy: { createdAt: "desc" } },
       },
     });

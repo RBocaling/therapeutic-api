@@ -108,13 +108,57 @@ export const submitSurveyResponse = async (
 
 export const getUserSurveyResults = async (userId: number) => {
   const profile = await prisma.userProfile.findUnique({ where: { userId } });
-  if (!profile) throw new Error("Profile not found.");
+  if (!profile) throw new Error("Profile not found");
 
-  return prisma.userResponse.findMany({
+  const responses = await prisma.userResponse.findMany({
     where: { userProfileId: profile.id },
-    include: { surveyForm: true },
+    include: {
+      surveyForm: { include: { questions: true } },
+      answers: true,
+    },
+    orderBy: [{ surveyFormId: "asc" }, { createdAt: "desc" }],
   });
+
+  const parseOptions = (options: any): string[] => {
+    if (!options) return [];
+    if (Array.isArray(options)) return options;
+    if (typeof options === "string") {
+      try {
+        const parsed = JSON.parse(options);
+        return Array.isArray(parsed)
+          ? parsed
+          : Array.isArray(parsed?.options)
+          ? parsed.options
+          : [];
+      } catch {
+        return [];
+      }
+    }
+    if (typeof options === "object" && Array.isArray(options.options))
+      return options.options;
+    return [];
+  };
+
+  return responses.map((r, i) => ({
+    takeNumber: responses.length - i,
+    surveyId: r.surveyForm.id,
+    surveyTitle: r.surveyForm.title,
+    surveyCode: r.surveyForm.code,
+    score: r.score,
+    resultCategory: r.resultCategory,
+    status: r.status,
+    dateTaken: r.createdAt,
+    questions: r.surveyForm.questions.map((q) => ({
+      questionName: q.questionName,
+      options: parseOptions(q.options),
+      userAnswer:
+        r.answers.find((a) => a.surveyQuestionId === q.id)?.value ?? null,
+    })),
+  }));
 };
+
+
+
 
 
 

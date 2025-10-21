@@ -8,6 +8,7 @@ export const getUserUserInfo = async (userId: number) => {
       firstName: true,
       lastName: true,
       middleName: true,
+      role: true,
       suffix: true,
       email: true,
       profilePic: true,
@@ -16,14 +17,15 @@ export const getUserUserInfo = async (userId: number) => {
     },
   });
 
-    if (!user) throw new Error("User not found.");
-    
+  if (!user) throw new Error("User not found.");
+
   return {
     id: user.id,
     name: `${user.firstName} ${user.middleName ?? ""} ${user.lastName} ${
       user.suffix ?? ""
     }`.trim(),
     email: user.email,
+    role: user.role,
     profilePic: user.profilePic,
     isTakeSurvey: user.isTakeSurvey,
     profile: user.profile,

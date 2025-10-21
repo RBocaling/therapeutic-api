@@ -5,7 +5,7 @@ import { authenticateUser } from "../middlewares/auth.middleware";
 const router = Router();
 
 router.post("/seed", survey.seedSurveys);
-router.get("/seed/:code", authenticateUser, survey.getSurveyByCode);
+router.get("/seed/:code", authenticateUser, survey.getSurveyByCode as any);
 
 router.get("/", authenticateUser, survey.getAllSurveys);
 router.get("/results", authenticateUser, survey.getUserSurveyResults);
