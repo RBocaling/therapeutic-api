@@ -75,7 +75,7 @@ export const getUserSurveyResultsByAdmin = async (
   res: Response
 ) => {
   try {
-    const userId = Number(req.params.userId);
+    const userId = Number(req.params.id);
     const data = await surveyService.getUserSurveyResults(userId);
     res.json(data);
   } catch (error: any) {
@@ -83,12 +83,11 @@ export const getUserSurveyResultsByAdmin = async (
   }
 };
 
-
 export const getSurveyHistoryController = async (
   req: Request,
   res: Response
 ) => {
-    try {      
+  try {
     const userProfileId = Number(req.user?.profile?.id);
     const data = await surveyService.getSurveyHistory(userProfileId);
     res.status(200).json(data);
@@ -98,6 +97,7 @@ export const getSurveyHistoryController = async (
   }
 };
 
+// progress monitoringg
 export const getSurveyProgressController = async (
   req: Request,
   res: Response
@@ -113,5 +113,17 @@ export const getSurveyProgressController = async (
   } catch (error) {
     console.error("Error fetching survey progress:", error);
     res.status(500).json({ message: "Failed to fetch survey progress." });
+  }
+};
+
+export const getAllUserProgressMonitoring = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const data = await surveyService.getAllUserProgressMonitoring();
+    res.status(200).json({ success: true, data });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };

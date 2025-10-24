@@ -18,5 +18,17 @@ router.get(
 );
 
 router.post("/:code/submit", authenticateUser, survey.submitSurveyResponses);
+router.get(
+  "/progress-monitoring",
+  authenticateUser,
+  survey.getAllUserProgressMonitoring
+);
+
+// view
+router.get(
+  "/view-user-with-survey/:id",
+  authenticateUser,
+  survey.getUserSurveyResultsByAdmin
+);
 
 export default router;

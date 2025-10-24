@@ -24,6 +24,44 @@ enum ChatStatus {
   CLOSED
 }
 
+enum NotificationType {
+  KYC_VERIFIED
+  ACCOUNT_VERIFIED
+  MESSAGE
+  SESSION_SCHEDULING
+  REFERRAL
+  ACTIVITY_PROGRESS
+  SECURITY
+}
+
+enum SessionType {
+  INITIAL
+  FOLLOW_UP
+  CRISIS
+  ASSESSMENT
+}
+
+enum ReminderTiming {
+  NONE
+  MIN_15
+  HOUR_1
+  DAY_1
+  DAY_2
+}
+
+enum SessionStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  REJECTED
+}
+
+enum LocationType {
+  IN_PERSON
+  VIDEO_CALL
+  PHONE_CALL
+}
 
 model User {
   id                  Int                  @id @default(autoincrement())
@@ -48,10 +86,29 @@ model User {
   chatSessionsAsCounselor ChatSession[]    @relation("CounselorChatSessions")
   chatMessagesSent        ChatMessage[]    @relation("UserMessages")
 
+  // motif
+  notifications             Notification[]       @relation("UserNotifications")
+
+  // session scheduling
+  sessionSchedulesAsUser      SessionSchedule[] @relation("UserSchedules")
+  sessionSchedulesAsCounselor SessionSchedule[] @relation("CounselorSchedules")
+
+  // awareness campaigns
+  campaigns   AwarenessCampaign[]   @relation("CreatedCampaigns") //moderator
+  comments    Comment[]
+  feedbacks   Feedback[] 
+
+  // referral
+  referredsAsUser        Referral[] @relation("UserReferral")
+  referralsAsCounselor   Referral[] @relation("CounselorReferral") 
+  referralsAsReferrer    Referral[] @relation("ReferrerReferral")
+
+  // content/courses
+  contentsUploaded       Content[]  @relation("UploadedContents")
+  
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
 }
-
 
 model UserProfile {
   id                        Int            @id @default(autoincrement())
@@ -81,6 +138,8 @@ model UserProfile {
   sectionBlock               String?
   office                     String?
   jobPosition                String?
+
+  isKycVerified               Boolean? @default(false)
 
   user                      User            @relation(fields: [userId], references: [id])
   responses                 UserResponse[]  @relation("ProfileToResponses")
@@ -163,7 +222,6 @@ model SurveyAnswer {
   surveyQuestionId Int
   value            String?
   numericValue     Float?
-
   userResponse     UserResponse     @relation(fields: [userResponseId], references: [id])
   surveyQuestion   SurveyQuestion   @relation(fields: [surveyQuestionId], references: [id])
 
@@ -189,7 +247,7 @@ model ChatMessage {
   id           Int         @id @default(autoincrement())
   chatSessionId Int
   senderId     Int?
-  content      String
+  content      String @db.Text
   imageUrl     String?
   isFromAI     Boolean     @default(false)
   createdAt    DateTime    @default(now())
@@ -198,4 +256,167 @@ model ChatMessage {
   sender       User?       @relation("UserMessages", fields: [senderId], references: [id])
 }
 
+model Notification {
+  id             Int                 @id @default(autoincrement())
+  recipientId    Int
+  recipient      User                @relation("UserNotifications", fields: [recipientId], references: [id])
+  type           NotificationType
+  title          String
+  message        String
+  isRead         Boolean             @default(false)
+  createdAt      DateTime            @default(now())
+}
+// session scheduling
+model SessionSchedule {
+  id                  Int            @id @default(autoincrement())
+  counselorId         Int
+  userId              Int
+  startAt             DateTime
+  endAt               DateTime?
+  sessionType         SessionType
+  notes               String?
+  reminder            ReminderTiming @default(NONE)
+  status              SessionStatus  @default(PENDING)
+  locationType        LocationType   @default(IN_PERSON)
+  locationDetail      String?
+  meetingLink         String?
+  phoneNumber         String?
+  reminderSentAt      DateTime?
+  completedNotifiedAt DateTime?
 
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  counselor           User           @relation("CounselorSchedules", fields: [counselorId], references: [id])
+  user                User           @relation("UserSchedules", fields: [userId], references: [id])
+}
+
+
+// awareness campign
+enum CampaignType {
+  ANNOUNCEMENT
+  ARTICLE
+  EVENT
+}
+
+enum Sentiment {
+  POSITIVE
+  NEUTRAL
+  NEGATIVE
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+}
+
+
+model AwarenessCampaign {
+  id            Int             @id @default(autoincrement())
+  title         String
+  content       String
+  type          CampaignType
+  status        CampaignStatus  @default(DRAFT)
+  imageUrl      String?
+  startDate     DateTime?
+  endDate       DateTime?
+  audienceTags  String?
+  impressions   Int             @default(0)
+  createdById   Int
+  createdBy     User            @relation("CreatedCampaigns", fields: [createdById], references: [id])
+  comments      Comment[]
+  feedbacks     Feedback[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+model Comment {
+  id         Int       @id @default(autoincrement())
+  content    String
+  imageUrl   String?
+  userId     Int
+  campaignId Int
+  user       User           @relation(fields: [userId], references: [id])
+  campaign   AwarenessCampaign @relation(fields: [campaignId], references: [id])
+  createdAt  DateTime       @default(now())
+}
+
+model Feedback {
+  id         Int       @id @default(autoincrement())
+  userId     Int
+  campaignId Int
+  context    String?
+  rating     Int?
+  sentiment  Sentiment?
+  message    String
+  imageUrl   String?
+  user       User              @relation(fields: [userId], references: [id])
+  campaign   AwarenessCampaign @relation(fields: [campaignId], references: [id])
+  createdAt  DateTime          @default(now())
+}
+
+
+model Referral {
+  id               Int             @id @default(autoincrement())
+  userId           Int
+  counselorId      Int?             
+  referrerId       Int              
+
+  concern          String
+  shortDescription String
+  priority         Priority
+  recipient        String
+  summaryNotes     String?
+  status           ReferralStatus   @default(SENT)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  user        User  @relation("UserReferral", fields: [userId], references: [id])
+  counselor   User? @relation("CounselorReferral", fields: [counselorId], references: [id]) // ✅ optional
+  referrer    User  @relation("ReferrerReferral", fields: [referrerId], references: [id])   // ✅ required
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum ReferralStatus {
+  SENT
+  ACCEPTED
+  COMPLETED
+  REJECTED
+  PENDING
+}
+
+model Content {
+  id            Int       @id @default(autoincrement())
+  title         String
+  type          ContentType
+  description   String?
+  category      String?
+  targetAudience TargetAudience
+  content       String?
+  videoUrl      String?
+  uploadedById  Int
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  uploadedBy    User      @relation("UploadedContents", fields: [uploadedById], references: [id])
+}
+
+enum ContentType {
+  GUIDE
+  COURSE
+  RESOURCE
+}
+
+enum TargetAudience {
+  GENERAL
+  ADULTS
+  TEENS
+  CHILDREN
+}

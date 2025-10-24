@@ -6,23 +6,28 @@ import userInfoRoutes from "./routes/user.routes";
 import surveyRoutes from "./routes/survey.routes";
 import adminsRoutes from "./routes/admin.routes";
 import chatRoutes from "./routes/chat.routes";
+import notificationRoutes from "./routes/notification.routes";
+import sessionScheduleRoutes from "./routes/schedule-session.routes";
+import awarenessCampaignRoutes from "./routes/awareness.routes";
+import referralRoutes from "./routes/referral.routes";
+import contentManagementRoutes from "./routes/content-management.routes";
 
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
-app.use(
-  cors({
-    origin: "http://localhost:5173",
-    credentials: true,
-  })
-);
+app.use(cors());
 
 // Routes
 app.use("/api/auth", authRoutes);
-app.use("/api/user-info", userInfoRoutes);
+app.use("/api/user", userInfoRoutes);
 app.use("/api/survey", surveyRoutes);
 app.use("/api/admins", adminsRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/notification", notificationRoutes);
+app.use("/api/session-schedule", sessionScheduleRoutes);
+app.use("/api/awareness-campaign", awarenessCampaignRoutes);
+app.use("/api/referral", referralRoutes);
+app.use("/api/content-management", contentManagementRoutes);
 
 
 export default app;

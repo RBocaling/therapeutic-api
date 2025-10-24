@@ -33,3 +33,12 @@ export const computeProgress = (scores: number[]): ProgressAnalysis => {
     status,
   };
 };
+
+
+export const computeProgressPercentage = (scores: number[]): number => {
+  if (scores.length < 2) return 0;
+  const first = scores[0];
+  const latest = scores[scores.length - 1];
+  const progress = ((latest - first) / (first || 1)) * 100;
+  return Math.min(Math.max(progress, 0), 100);
+};

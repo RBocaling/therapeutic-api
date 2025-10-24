@@ -1,0 +1,126 @@
+import { Request, Response } from "express";
+import * as campaignService from "../services/awareness.services";
+
+export const createCampaign = async (req: Request, res: Response) => {
+  try {
+    const createdById = Number(req.user?.id);
+    if (!createdById) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const {
+      title,
+      content,
+      type,
+      status,
+      imageUrl,
+      startDate,
+      endDate,
+      audienceTags,
+    } = req.body;
+
+      if (req.user?.role !== "MODERATOR") {
+          res.status(201).json({message: "Unautorized to access"});
+      }
+        const data = await campaignService.createCampaign({
+          title,
+          content,
+          audienceTags,
+          type,
+          status,
+          imageUrl,
+          startDate: startDate ? new Date(startDate) : null,
+          endDate: endDate ? new Date(endDate) : null,
+          createdById,
+        });
+
+    res.status(201).json({ success: true, data });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const updateCampaignStatus = async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    const { status } = req.body;
+
+    const validStatuses = ["DRAFT", "SCHEDULED", "PUBLISHED", "ARCHIVED"];
+    if (!validStatuses.includes(status)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid status value" });
+    }
+
+    const updated = await campaignService.updateCampaignStatus(id, status);
+    res.json({ success: true, data: updated });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const listCampaigns = async (_req: Request, res: Response) => {
+  try {
+    const campaigns = await campaignService.listCampaigns();
+    res.json(campaigns );
+  } catch (error: any) {
+    res.status(500).json( error.message );
+  }
+};
+
+export const getCampaignById = async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    const data = await campaignService.getCampaignById(id);
+    if (!data)
+      return res
+        .status(404)
+        .json({ success: false, message: "Campaign not found" });
+    res.status(200).json({ success: true, data });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const addComment = async (req: Request, res: Response) => {
+  try {
+    const payload = {
+      campaignId: Number(req.params.id),
+      userId: Number(req.user?.id),
+      content: req.body.content,
+      imageUrl: req.body.imageUrl,
+    };
+    const data = await campaignService.addComment(payload);
+    res.status(201).json({ success: true, data });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const submitFeedback = async (req: Request, res: Response) => {
+  try {
+    const payload = {
+      campaignId: Number(req.params.id),
+      userId: Number(req.user?.id),
+      context: req.body.context,
+      rating: req.body.rating,
+      sentiment: req.body.sentiment,
+      message: req.body.message,
+      imageUrl: req.body.imageUrl,
+    };
+    const data = await campaignService.submitFeedback(payload);
+    res.status(201).json({ success: true, data });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const listFeedbacks = async (req: Request, res: Response) => {
+  try {
+    const campaignId = Number(req.params.id);
+    const data = await campaignService.listFeedbacks(campaignId);
+    res.status(200).json({ success: true, data });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

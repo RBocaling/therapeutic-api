@@ -12,3 +12,24 @@ export const getUserInfo = async (req: Request, res: Response) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const listUsersController = async (req: Request, res: Response) => {
+  try {
+    const users = await user.listUsers();
+    res.json(users);
+  } catch (err: any) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const getUserByIdController = async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    if (!id) return res.status(400).json({ message: "Invalid ID" });
+
+    const userResponse = await user.getUserById(id);
+    res.json(userResponse);
+  } catch (err: any) {
+    res.status(404).json({ message: err.message });
+  }
+};

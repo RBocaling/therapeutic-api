@@ -6,20 +6,26 @@ export const computeSurveyScore = (surveyCode: string, answers: any[]) => {
   switch (surveyCode) {
     case "PHQ-9":
       if (totalScore >= 20) category = "Severe Depression";
-      else if (totalScore >= 15) category = "Moderately Severe";
-      else if (totalScore >= 10) category = "Moderate";
-      else if (totalScore >= 5) category = "Mild";
-      else category = "Minimal";
+      else if (totalScore >= 15) category = "Moderately Severe Depression";
+      else if (totalScore >= 10) category = "Moderate Depression";
+      else if (totalScore >= 5) category = "Mild Depression";
+      else category = "Minimal Depression";
       break;
 
     case "GAD-7":
       if (totalScore >= 15) category = "Severe Anxiety";
-      else if (totalScore >= 10) category = "Moderate";
-      else if (totalScore >= 5) category = "Mild";
+      else if (totalScore >= 10) category = "Moderate Anxiety";
+      else if (totalScore >= 5) category = "Mild Anxiety";
+      else category = "Minimal Anxiety";
       break;
 
     case "MHI-38":
-      category = totalScore > 100 ? "High Well-being" : "Low Well-being";
+      if (totalScore >= 180) category = "High Positive Well-being (Excellent)";
+      else if (totalScore >= 140)
+        category = "Moderate Positive Well-being (Good)";
+      else if (totalScore >= 100)
+        category = "Moderate Negative Mental Health (Fair)";
+      else category = "High Negative Mental Health (At Risk)";
       break;
 
     default:

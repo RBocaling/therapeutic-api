@@ -65,7 +65,11 @@ export const getMessages = async (req: Request, res: Response) => {
     const chatSessionId = Number(req.params.chatSessionId);
     const requesterId = Number(req?.user?.id);
     const messages = await chatService.getMessages(chatSessionId, requesterId);
-    res.status(200).json({ messages });
+    const messageResponse = messages?.map((item) => ({
+      ...item,
+      isMe: item?.senderId == requesterId,
+    }));
+    res.status(200).json({ messages: messageResponse });
   } catch (err: any) {
     res.status(400).json({ message: err.message });
   }
