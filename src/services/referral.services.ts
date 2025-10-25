@@ -94,6 +94,7 @@ export const listReferrals = async (id:number, role:any) => {
             lastName: true,
             email: true,
             profilePic: true,
+            isAccountVerified: true,
           },
         },
         counselor: {

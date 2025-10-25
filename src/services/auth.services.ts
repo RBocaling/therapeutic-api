@@ -4,7 +4,44 @@ import prisma from "../config/prisma";
 import { sendMail } from "../utils/mailer";
 import { generateOtp } from "../utils/otp";
 import { generateTokens } from "../utils/jwt";
+import { createNotification } from "./notification.services";
+import { verifyGoogleToken } from "../utils/googleClient";
 
+// connect google
+export const googleAuthService = async (token: string) => {
+  try {
+    const googleUser = await verifyGoogleToken(token);
+    if (!googleUser?.email) throw new Error("Invalid Google token.");
+
+    let user = await prisma.user.findUnique({
+      where: { email: googleUser.email },
+    });
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          firstName: googleUser.given_name as string,
+          lastName: googleUser.family_name as string,
+          email: googleUser.email,
+          isAccountVerified: true,
+          googleId: googleUser.sub,
+          profile: { create: { userStatus: "STUDENT" } },
+        },
+      });
+    } else if (!user.googleId) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { googleId: googleUser.sub },
+      });
+    }
+
+    return generateTokens({ id: user.id, email: user.email, role: user.role });
+  } catch (error: any) {
+    throw new Error(error);
+  }
+};
+
+// manualll
 export const registerUser = async (data: any) => {
   try {
     const existing = await prisma.user.findUnique({
@@ -65,9 +102,9 @@ export const loginUser = async (
         profile: { select: { id: true } },
       },
     });
-    if (!user) throw new Error("User not found.");
+    if (!user?.password || !user) throw new Error("User not found.");
 
-    const valid = await argon2.verify(user.password, password);
+    const valid = await argon2.verify(user?.password, password);
     if (!valid) throw new Error("Invalid credentials.");
     if (user.role === "USER" && !user.isAccountVerified)
       throw new Error("Account not verified.");
@@ -102,6 +139,13 @@ export const verifyAccountService = async (email: string, otp: string) => {
     const data = await prisma.user.update({
       where: { email },
       data: { isAccountVerified: true, otpCode: null, otpExpiresAt: null },
+    });
+
+    await createNotification({
+      recipientId: Number(user.id),
+      type: "ACCOUNT_VERIFIED",
+      title: "Account Verified Successfully",
+      message: `Hi ${user.firstName}, your account has been verified. `,
     });
 
     return data;
@@ -230,7 +274,8 @@ export const changePassword = async (
 ) => {
   try {
     const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new Error("User not found.");
+    if (!user || !user?.password || !user?.email)
+      throw new Error("User not found.");
 
     const valid = await argon2.verify(user.password, oldPassword);
     if (!valid) throw new Error("Old password is incorrect.");

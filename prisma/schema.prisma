@@ -69,8 +69,8 @@ model User {
   lastName            String
   middleName          String?
   suffix              String?
-  email               String               @unique
-  password            String
+  email               String?               @unique
+  password            String?
   profilePic          String?
   isTakeSurvey        Boolean              @default(false)
   role                Role                 @default(USER)
@@ -80,6 +80,9 @@ model User {
   profile             UserProfile?
   responses           UserResponse[]       @relation("UserToResponses")
   counselorInfo       CounselorProfile?
+
+  // google
+  googleId         String?   @unique
 
   // Chat relations
   chatSessionsAsUser      ChatSession[]    @relation("UserChatSessions")
@@ -206,7 +209,7 @@ model UserResponse {
   score            Float?
   resultCategory   String?
   status           String           @default("inprogress")
-
+  isReviewed      Boolean           @default(false)
   userProfile      UserProfile      @relation("ProfileToResponses", fields: [userProfileId], references: [id])
   user             User             @relation("UserToResponses", fields: [userId], references: [id])
   surveyForm       SurveyForm       @relation(fields: [surveyFormId], references: [id])
@@ -370,6 +373,8 @@ model Referral {
   recipient        String
   summaryNotes     String?
   status           ReferralStatus   @default(SENT)
+  acknowledgeStatus Boolean          @default(false)
+
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 

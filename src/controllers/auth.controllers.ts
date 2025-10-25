@@ -2,6 +2,18 @@ import { Request, Response } from "express";
 import * as auth from "../services/auth.services";
 import { createNotification } from "../services/notification.services";
 
+
+export const googleLogin = async (req: Request, res: Response) => {
+  try {
+    const { token } = req.body;
+    const tokens = await auth.googleAuthService(token);
+    res.status(200).json({ message: "Google login successful", tokens });
+  } catch (err: any) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
+
 export const register = async (req: Request, res: Response) => {
   try {
     await auth.registerUser(req.body);

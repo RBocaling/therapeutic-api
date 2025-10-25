@@ -127,3 +127,64 @@ export const getAllUserProgressMonitoring = async (
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// anyalysis
+export const getAnalyticsController = async (req: Request, res: Response) => {
+  try {
+    const counselorId =
+      req.user?.role === "COUNSELOR" ? req.user.id : undefined;
+    const data = await surveyService.getAnalytics(counselorId);
+    res.status(200).json({ success: true, data });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getCriticalAlertsController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const counselorId =
+      req.user?.role === "COUNSELOR" ? req.user.id : undefined;
+    const data = await surveyService.getCriticalAlerts(counselorId);
+    res.status(200).json({ success: true, data });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const acknowledgeAlertController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const id = Number(req.params.id);
+    const updated = await surveyService.acknowledgeAlert(id);
+    res.status(200).json({ success: true, updated });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+export const markAsMarkedController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const id = Number(req.params.id);
+    const updated = await surveyService.markAsReviewed(id);
+    res.status(200).json({ success: true, updated });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+}; 
+
+
+export const fetchMHI38Review = async (req: Request, res: Response) => {
+  try {
+    const result = await surveyService.getMHI38Review();
+    res.status(200).json(result);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+};

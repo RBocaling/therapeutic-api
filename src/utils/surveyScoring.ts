@@ -20,12 +20,10 @@ export const computeSurveyScore = (surveyCode: string, answers: any[]) => {
       break;
 
     case "MHI-38":
-      if (totalScore >= 180) category = "High Positive Well-being (Excellent)";
-      else if (totalScore >= 140)
-        category = "Moderate Positive Well-being (Good)";
-      else if (totalScore >= 100)
-        category = "Moderate Negative Mental Health (Fair)";
-      else category = "High Negative Mental Health (At Risk)";
+      if (totalScore >= 180) category = "Healthy";
+      else if (totalScore >= 132) category = "Responding";
+      else if (totalScore >= 85) category = "Struggling";
+      else category = "Crisis";
       break;
 
     default:

@@ -31,4 +31,26 @@ router.get(
   survey.getUserSurveyResultsByAdmin
 );
 
+
+// anay;isis
+router.get("/analytics", authenticateUser, survey.getAnalyticsController);
+router.get(
+  "/analytics/critical-alerts",
+  authenticateUser,
+  survey.getCriticalAlertsController
+);
+router.put(
+  "/analytics/critical-alerts/acknowledge/:id",
+  authenticateUser,
+  survey.acknowledgeAlertController
+);
+router.put(
+  "/mark-as-review/:id",
+  authenticateUser,
+  survey.markAsMarkedController
+);
+
+// review mhi 38
+router.get("/mhi-38-review", authenticateUser, survey.fetchMHI38Review);
+
 export default router;

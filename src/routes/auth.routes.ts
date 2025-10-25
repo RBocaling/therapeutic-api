@@ -4,6 +4,7 @@ import { authenticateUser } from "../middlewares/auth.middleware";
 
 const router = Router();
 
+router.post("/google-auth", authController.googleLogin);
 router.post("/register", authController.register);
 router.post("/login", authController.login);
 router.post("/verify-account", authController.verifyAccount);

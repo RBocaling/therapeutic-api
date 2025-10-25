@@ -1,4 +1,11 @@
+import { differenceInYears } from "date-fns";
 import prisma from "../config/prisma";
+import {
+  calculateAverage,
+  calculatePercentageChange,
+  computeRiskDistribution,
+  groupByAge,
+} from "../utils/compute.analytics";
 import { computeProgress } from "../utils/computeProgress";
 import { computeSurveyScore } from "../utils/surveyScoring";
 
@@ -337,5 +344,386 @@ export const getAllUserProgressMonitoring = async () => {
     return result;
   } catch (error: any) {
     throw new Error(error);
+  }
+};
+
+// analytics
+export const getAnalytics = async (counselorId?: number) => {
+  try {
+    const referrals = await prisma.referral.findMany({
+      where: counselorId ? { counselorId } : {},
+      include: {
+        user: {
+          include: {
+            profile: true,
+            responses: {
+              include: { surveyForm: true },
+              orderBy: { createdAt: "desc" },
+            },
+          },
+        },
+      },
+    });
+
+    const allResponses = referrals.flatMap((r) => r.user.responses);
+    if (!allResponses.length) {
+      return {
+        totalCount: 0,
+        averages: {},
+        demographics: {},
+        trends: {},
+      };
+    }
+
+    const groupedBySurvey: Record<
+      string,
+      { current: number[]; previous: number[] }
+    > = {
+      "PHQ-9": { current: [], previous: [] },
+      "GAD-7": { current: [], previous: [] },
+      "MHI-38": { current: [], previous: [] },
+      STRESS: { current: [], previous: [] },
+    };
+
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+
+    for (const r of allResponses) {
+      const date = new Date(r.createdAt);
+      const month = date.getMonth();
+      const year = date.getFullYear();
+      const score = r.score || 0;
+
+      if (year === currentYear && month === currentMonth)
+        groupedBySurvey[r.surveyForm.code]?.current.push(score);
+      else if (year === currentYear && month === currentMonth - 1)
+        groupedBySurvey[r.surveyForm.code]?.previous.push(score);
+    }
+
+    // Compute averages
+    const avgPHQ = calculateAverage(groupedBySurvey["PHQ-9"].current);
+    const avgPHQPrev = calculateAverage(groupedBySurvey["PHQ-9"].previous);
+
+    const avgGAD = calculateAverage(groupedBySurvey["GAD-7"].current);
+    const avgGADPrev = calculateAverage(groupedBySurvey["GAD-7"].previous);
+
+    const avgWellbeing = calculateAverage(groupedBySurvey["MHI-38"].current);
+    const avgWellbeingPrev = calculateAverage(
+      groupedBySurvey["MHI-38"].previous
+    );
+
+    const avgStress = calculateAverage(groupedBySurvey["STRESS"].current);
+    const avgStressPrev = calculateAverage(groupedBySurvey["STRESS"].previous);
+
+    // Engagement rate
+    const totalUsers = referrals.length;
+    const engagedUsers = referrals.filter((r) =>
+      r.user.responses.some((resp) => {
+        const d = new Date(resp.createdAt);
+        return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+      })
+    ).length;
+
+    const engagementRate = totalUsers ? (engagedUsers / totalUsers) * 100 : 0;
+
+    const prevEngagedUsers = referrals.filter((r) =>
+      r.user.responses.some((resp) => {
+        const d = new Date(resp.createdAt);
+        return (
+          d.getMonth() === currentMonth - 1 && d.getFullYear() === currentYear
+        );
+      })
+    ).length;
+
+    const prevEngagementRate = totalUsers
+      ? (prevEngagedUsers / totalUsers) * 100
+      : 0;
+
+    const crisisAlertsCount = await prisma.referral.count({
+      where: { counselorId, priority: "URGENT" },
+    });
+
+    // Demographics
+    const ages = referrals
+      .map((r) => {
+        const birthdate = r.user.profile?.birthday;
+        if (!birthdate) return null;
+        return differenceInYears(new Date(), new Date(birthdate));
+      })
+      .filter((a): a is number => !!a);
+    const ageGroupsRaw = groupByAge(ages);
+    const totalAges = Object.values(ageGroupsRaw).reduce((a, b) => a + b, 0);
+    const ageGroups = Object.fromEntries(
+      Object.entries(ageGroupsRaw).map(([k, v]) => [
+        k,
+        {
+          count: v,
+          percentage: totalAges
+            ? ((v / totalAges) * 100).toFixed(1) + "%"
+            : "0%",
+        },
+      ])
+    );
+
+    const riskDistributionRaw = computeRiskDistribution(
+      allResponses.map((r) => r.resultCategory || "Normal")
+    );
+    const totalRisks = Object.values(riskDistributionRaw).reduce(
+      (a, b) => a + b,
+      0
+    );
+    const riskDistribution = Object.fromEntries(
+      Object.entries(riskDistributionRaw).map(([k, v]) => [
+        k,
+        {
+          count: v,
+          percentage: totalRisks
+            ? ((v / totalRisks) * 100).toFixed(1) + "%"
+            : "0%",
+        },
+      ])
+    );
+
+    // Trends data for charts
+    const trends = {
+      depressionAnxiety: {
+        label: "Depression & Anxiety Trends",
+        PHQ9: {
+          current: avgPHQ,
+          previous: avgPHQPrev,
+        },
+        GAD7: {
+          current: avgGAD,
+          previous: avgGADPrev,
+        },
+      },
+      wellbeingStress: {
+        label: "Wellbeing & Stress Trends",
+        Wellbeing: {
+          current: avgWellbeing,
+          previous: avgWellbeingPrev,
+        },
+        Stress: {
+          current: avgStress,
+          previous: avgStressPrev,
+        },
+      },
+    };
+
+    return {
+      totalCount: totalUsers,
+      averages: {
+        PHQ9: {
+          value: avgPHQ,
+          change: calculatePercentageChange(avgPHQ, avgPHQPrev),
+        },
+        GAD7: {
+          value: avgGAD,
+          change: calculatePercentageChange(avgGAD, avgGADPrev),
+        },
+        Stress: {
+          value: avgStress,
+          change: calculatePercentageChange(avgStress, avgStressPrev),
+        },
+        Wellbeing: {
+          value: avgWellbeing,
+          change: calculatePercentageChange(avgWellbeing, avgWellbeingPrev),
+        },
+        CrisisAlerts: {
+          value: crisisAlertsCount,
+          change: "N/A",
+        },
+        EngagementRate: {
+          value: `${engagementRate.toFixed(1)}%`,
+          change: calculatePercentageChange(engagementRate, prevEngagementRate),
+        },
+      },
+      demographics: {
+        ageDistribution: ageGroups,
+        riskDistribution,
+      },
+      trends,
+    };
+  } catch (error: any) {
+    throw new Error(error);
+  }
+};
+
+export const getCriticalAlerts = async (counselorId?: number) => {
+  const referrals = await prisma.referral.findMany({
+    where: counselorId ? { counselorId } : {},
+    include: {
+      user: {
+        include: {
+          profile: true,
+          responses: {
+            include: { surveyForm: true },
+            orderBy: { createdAt: "desc" },
+          },
+        },
+      },
+    },
+  });
+
+  const alerts = referrals.map((r) => {
+    const latestResponse = r.user.responses[0];
+    const latestSurvey = latestResponse?.surveyForm?.code || "N/A";
+    const category = latestResponse?.resultCategory || "Normal";
+
+    let riskLevel: "Low" | "Medium" | "High" | "Critical" = "Low";
+
+    if (
+      category.includes("Severe") ||
+      category.includes("At Risk") ||
+      category.includes("Crisis")
+    )
+      riskLevel = "Critical";
+    else if (category.includes("Moderate") || category.includes("Struggling"))
+      riskLevel = "High";
+    else if (category.includes("Mild") || category.includes("Responding"))
+      riskLevel = "Medium";
+    else if (category.includes("Healthy") || category.includes("Normal"))
+      riskLevel = "Low";
+
+    const priority =
+      riskLevel === "Critical"
+        ? "URGENT"
+        : riskLevel === "High"
+        ? "HIGH"
+        : riskLevel === "Medium"
+        ? "MEDIUM"
+        : "LOW";
+
+    return {
+      referralId: r.id,
+      userId: r.user.id,
+      userName: `${r.user.firstName} ${r.user.lastName}`,
+      surveyCode: latestSurvey,
+      resultCategory: category,
+      riskLevel,
+      priority,
+      status: r.status,
+      acknowledgeStatus: r.acknowledgeStatus,
+      createdAt: r.createdAt,
+    };
+  });
+
+  const summary = {
+    totalAlerts: alerts.length,
+    critical: alerts.filter((a) => a.riskLevel === "Critical").length,
+    new: alerts.filter((a) => !a.acknowledgeStatus).length,
+    inProgress: alerts.filter(
+      (a) => a.status === "ACCEPTED" || a.status === "PENDING"
+    ).length,
+    resolved: alerts.filter((a) => a.status === "COMPLETED").length,
+  };
+
+  return {
+    summary,
+    alerts: alerts.filter((a) => a.riskLevel !== "Low"),
+  };
+};
+
+export const acknowledgeAlert = async (id: number) => {
+  try {
+    const updated = await prisma.referral.update({
+      where: { id },
+      data: { acknowledgeStatus: true },
+    });
+    return updated;
+  } catch (error: any) {
+    throw new Error(error);
+  }
+};
+export const markAsReviewed = async (id: number) => {
+  try {
+    const updated = await prisma.userResponse.update({
+      where: { id },
+      data: { isReviewed: true },
+    });
+    return updated;
+  } catch (error: any) {
+    throw new Error(error);
+  }
+};
+
+// mhi review
+export const getMHI38Review = async () => {
+  try {
+    const responses = await prisma.userResponse.findMany({
+      where: { surveyForm: { code: "MHI-38" } },
+      include: {
+        user: {
+          include: { profile: true },
+        },
+        surveyForm: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (responses.length === 0) {
+      return {
+        summary: {
+          totalSubmissions: 0,
+          highRisk: 0,
+          unreviewed: 0,
+        },
+        data: [],
+      };
+    }
+
+    const groupedByUser = responses.reduce((acc: any, res) => {
+      const key = res.userId;
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(res);
+      return acc;
+    }, {});
+
+    const data = Object.values(groupedByUser).map((userResponses: any) => {
+      const user = userResponses[0].user;
+      const program = "MHI-38 Review Program";
+
+      const sorted = userResponses.sort(
+        (a: any, b: any) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      );
+
+      const scores = sorted.map((r: any) => r.score ?? 0);
+      const progress = computeProgress(scores);
+      const latest = sorted[sorted.length - 1];
+
+      const riskCategory = latest.resultCategory || "Normal";
+      const isHighRisk =
+        riskCategory.includes("Crisis") ||
+        riskCategory.includes("Severe") ||
+        riskCategory.includes("At Risk");
+
+      return {
+        userId: user.id,
+        name: `${user.firstName} ${user.lastName}`,
+        program,
+        totalScore: latest.score,
+        resultCategory: riskCategory,
+        submittedDate: latest.createdAt,
+        totalSurveysTaken: userResponses.length,
+        isReviewed: latest.isReviewed,
+        riskLevel: isHighRisk ? "Critical" : "Normal",
+      };
+    });
+
+    const totalSubmissions = data.length;
+    const highRisk = data.filter((d) => d.riskLevel === "Critical").length;
+    const unreviewed = data.filter((d) => !d.isReviewed).length;
+
+    return {
+      summary: {
+        totalSubmissions,
+        highRisk,
+        unreviewed,
+      },
+      data,
+    };
+  } catch (error: any) {
+    throw new Error(error.message);
   }
 };
