@@ -11,6 +11,7 @@ import sessionScheduleRoutes from "./routes/schedule-session.routes";
 import awarenessCampaignRoutes from "./routes/awareness.routes";
 import referralRoutes from "./routes/referral.routes";
 import contentManagementRoutes from "./routes/content-management.routes";
+import tlcGuided from "./routes/tlc.routes";
 
 const app = express();
 app.use(express.json());
@@ -28,6 +29,7 @@ app.use("/api/session-schedule", sessionScheduleRoutes);
 app.use("/api/awareness-campaign", awarenessCampaignRoutes);
 app.use("/api/referral", referralRoutes);
 app.use("/api/content-management", contentManagementRoutes);
+app.use("/api/tlc-guide", tlcGuided);
 
 
 export default app;

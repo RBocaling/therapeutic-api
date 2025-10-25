@@ -29,6 +29,15 @@ export const listContentsController = async (req: Request, res: Response) => {
     res.status(500).json({ message: err.message });
   }
 };
+export const viewContentById = async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    const contents = await contentManagement.viewContentById(id);
+    res.json({ contents });
+  } catch (err: any) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
 export const updateContentController = async (req: Request, res: Response) => {
   try {
@@ -48,5 +57,31 @@ export const deleteContentController = async (req: Request, res: Response) => {
     res.json(result);
   } catch (err: any) {
     res.status(400).json({ message: err.message });
+  }
+};
+
+export const addOrUpdateRating = async (req: Request, res: Response) => {
+  try {
+    const { contentId, rating, description } = req.body;
+    if (!contentId || !rating) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing required fields" });
+    }
+    if (rating < 1 || rating > 5) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Rating must be between 1 and 5" });
+    }
+
+    const result = await contentManagement.addOrUpdateRating(
+      Number(req?.user?.id),
+      contentId,
+      rating,
+      description
+    );
+    res.json({ success: true, data: result });
+  } catch (error) {
+    res.status(500).json({ success: false, message: String(error) });
   }
 };

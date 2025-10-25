@@ -108,6 +108,9 @@ model User {
 
   // content/courses
   contentsUploaded       Content[]  @relation("UploadedContents")
+  ratings          ContentRating[] @relation("UserRatings")
+  // tlc
+  guidedTLCPlans  GuidedTLCPlan[]
   
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
@@ -410,7 +413,23 @@ model Content {
   uploadedById  Int
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  ratings ContentRating[] @relation("ContentRatings")
   uploadedBy    User      @relation("UploadedContents", fields: [uploadedById], references: [id])
+}
+
+model ContentRating {
+  id          Int      @id @default(autoincrement())
+  contentId   Int
+  userId      Int
+  rating      Int      @db.SmallInt
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  content Content @relation(fields: [contentId], references: [id], name: "ContentRatings")
+  user    User    @relation(fields: [userId], references: [id], name: "UserRatings")
+
+  @@unique([contentId, userId])
 }
 
 enum ContentType {
@@ -424,4 +443,34 @@ enum TargetAudience {
   ADULTS
   TEENS
   CHILDREN
+}
+
+
+model GuidedTLCPlan {
+  id             Int               @id @default(autoincrement())
+  userId         Int
+  user           User              @relation(fields: [userId], references: [id])
+  title          String
+  goal           String
+  notes          String?
+  durationDays   Int
+  isCompleted    Boolean           @default(false)
+  certificateMsg String? @db.Text
+  certificateAt  DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  days           GuidedTLCDay[]
+}
+
+model GuidedTLCDay {
+  id           Int           @id @default(autoincrement())
+  planId       Int
+  dayNumber    Int
+  instructions String        @db.Text
+  tasks        Json
+  isCompleted  Boolean       @default(false)
+  completedAt  DateTime?
+  plan         GuidedTLCPlan @relation(fields: [planId], references: [id])
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }
