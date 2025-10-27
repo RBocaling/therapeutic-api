@@ -54,13 +54,13 @@ export const googleAuthService = async (token: string, res: Response) => {
     });
     res.cookie("accessToken", tokens.accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: true,
+      sameSite: "none",
     });
     res.cookie("refreshToken", tokens.refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: true,
+      sameSite: "none",
     });
 
     return user;
@@ -68,7 +68,6 @@ export const googleAuthService = async (token: string, res: Response) => {
     throw new Error(error.message || "Google authentication failed.");
   }
 };
-
 
 // manualll
 export const registerUser = async (data: any) => {
@@ -141,13 +140,13 @@ export const loginUser = async (
     const tokens = generateTokens(user);
     res.cookie("accessToken", tokens.accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: true,
+      sameSite: "none",
     });
     res.cookie("refreshToken", tokens.refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: true,
+      sameSite: "none",
     });
 
     return user;
