@@ -311,6 +311,7 @@ enum CampaignType {
   ANNOUNCEMENT
   ARTICLE
   EVENT
+  GENERAL
 }
 
 enum Sentiment {

@@ -61,6 +61,7 @@ export const listCampaigns = async () => {
             firstName: true,
             lastName: true,
             profilePic: true,
+            role: true,
           },
         },
         comments: {
