@@ -6,7 +6,7 @@ import { createNotification } from "../services/notification.services";
 export const googleLogin = async (req: Request, res: Response) => {
   try {
     const { token } = req.body;
-    const tokens = await auth.googleAuthService(token);
+    const tokens = await auth.googleAuthService(token, res);
     res.status(200).json({ message: "Google login successful", tokens });
   } catch (err: any) {
     res.status(400).json({ message: err.message });

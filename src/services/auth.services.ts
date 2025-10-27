@@ -8,10 +8,22 @@ import { createNotification } from "./notification.services";
 import { verifyGoogleToken } from "../utils/googleClient";
 
 // connect google
-export const googleAuthService = async (token: string) => {
+export const googleAuthService = async (token: string, res: Response) => {
   try {
-    const googleUser = await verifyGoogleToken(token);
-    if (!googleUser?.email) throw new Error("Invalid Google token.");
+    let googleUser: any;
+    if (token.startsWith("ya29.")) {
+      const response = await fetch(
+        "https://www.googleapis.com/oauth2/v3/userinfo",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      googleUser = await response.json();
+      if (!googleUser?.email) throw new Error("Invalid Google access token.");
+    } else {
+      googleUser = await verifyGoogleToken(token);
+      if (!googleUser?.email) throw new Error("Invalid Google ID token.");
+    }
 
     let user = await prisma.user.findUnique({
       where: { email: googleUser.email },
@@ -20,8 +32,8 @@ export const googleAuthService = async (token: string) => {
     if (!user) {
       user = await prisma.user.create({
         data: {
-          firstName: googleUser.given_name as string,
-          lastName: googleUser.family_name as string,
+          firstName: googleUser.given_name ?? "",
+          lastName: googleUser.family_name ?? "",
           email: googleUser.email,
           isAccountVerified: true,
           googleId: googleUser.sub,
@@ -35,11 +47,28 @@ export const googleAuthService = async (token: string) => {
       });
     }
 
-    return generateTokens({ id: user.id, email: user.email, role: user.role });
+    const tokens = generateTokens({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    });
+    res.cookie("accessToken", tokens.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    });
+    res.cookie("refreshToken", tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    });
+
+    return user;
   } catch (error: any) {
-    throw new Error(error);
+    throw new Error(error.message || "Google authentication failed.");
   }
 };
+
 
 // manualll
 export const registerUser = async (data: any) => {
