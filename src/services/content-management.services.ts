@@ -96,6 +96,7 @@ export const updateContent = async (
     description?: string;
     category?: string;
     targetAudience?: "GENERAL" | "ADULTS" | "TEENS" | "CHILDREN";
+    status?: "DRAFT" | "SCHEDULED" | "PUBLISHED" | "ARCHIVED";
     content?: string;
     videoUrl?: string;
     isAnonymous?: boolean;
