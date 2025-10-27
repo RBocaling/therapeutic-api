@@ -177,8 +177,8 @@ export const addComment = async (payload: {
       where: { id: payload.userId },
     });
     if (!user) throw new Error("User not found");
-    if (user.role !== "USER")
-      throw new Error("Only students/employees can comment");
+    // if (user.role !== "USER")
+    //   throw new Error("Only students/employees can comment");
 
     const campaign = await prisma.awarenessCampaign.findUnique({
       where: { id: payload.campaignId },
