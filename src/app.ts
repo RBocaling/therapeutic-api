@@ -14,9 +14,23 @@ import contentManagementRoutes from "./routes/content-management.routes";
 import tlcGuided from "./routes/tlc.routes";
 
 const app = express();
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "https://therapeutic-ai-clientside-rlacj515n.vercel.app",
+];
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  })
+);
+
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors());
 
 // Routes
 app.use("/api/auth", authRoutes);
