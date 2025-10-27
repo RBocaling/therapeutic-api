@@ -20,7 +20,7 @@ export const createCampaign = async (req: Request, res: Response) => {
       isAnonymous,
     } = req.body;
 
-    const data = await campaignService.createCampaign({
+    const data = await campaignService.createCampaign(req?.user?.role, {
       isAnonymous,
       title,
       content,

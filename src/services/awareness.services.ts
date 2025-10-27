@@ -1,17 +1,20 @@
 import prisma from "../config/prisma";
 
-export const createCampaign = async (data: {
-  isAnonymous: boolean;
-  title: string;
-  content: string;
-  audienceTags?: string;
-  type: "ANNOUNCEMENT" | "ARTICLE" | "EVENT";
-  status?: "DRAFT" | "SCHEDULED" | "PUBLISHED" | "ARCHIVED";
-  imageUrl?: string | null;
-  startDate?: Date | null;
-  endDate?: Date | null;
-  createdById: number;
-}) => {
+export const createCampaign = async (
+  role: any,
+  data: {
+    isAnonymous: boolean;
+    title: string;
+    content: string;
+    audienceTags?: string;
+    type: "ANNOUNCEMENT" | "ARTICLE" | "EVENT";
+    status?: "DRAFT" | "SCHEDULED" | "PUBLISHED" | "ARCHIVED";
+    imageUrl?: string | null;
+    startDate?: Date | null;
+    endDate?: Date | null;
+    createdById: number;
+  }
+) => {
   try {
     if (data.type === "EVENT" && !data.startDate) {
       throw new Error("Start date is required for event campaigns.");
@@ -29,6 +32,7 @@ export const createCampaign = async (data: {
         endDate: data.endDate ?? null,
         audienceTags: data.audienceTags ?? null,
         createdById: data.createdById,
+        isPostApproved: role === "MODERATOR" ? true : false,
       },
     });
   } catch (error) {
