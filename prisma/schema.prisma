@@ -80,7 +80,6 @@ model User {
   profile             UserProfile?
   responses           UserResponse[]       @relation("UserToResponses")
   counselorInfo       CounselorProfile?
-
   // google
   googleId         String?   @unique
 
@@ -325,6 +324,7 @@ model AwarenessCampaign {
   content       String
   type          CampaignType
   status        CampaignStatus  @default(DRAFT)
+  isAnonymous Boolean @default(false)
   imageUrl      String?
   startDate     DateTime?
   endDate       DateTime?

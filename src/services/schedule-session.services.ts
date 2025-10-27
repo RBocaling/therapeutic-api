@@ -55,7 +55,7 @@ export const createSchedule = async (payload: {
   }
 };
 
-export const listSchedulesForUser = (userId: number) => {
+export const listSchedulesForUser = async (userId: number) => {
   try {
     return prisma.sessionSchedule.findMany({
       where: { userId },
@@ -71,14 +71,14 @@ export const listSchedulesForUser = (userId: number) => {
       },
       orderBy: { startAt: "desc" },
     });
-  } catch (error:any) {
+  } catch (error: any) {
     throw new Error(error);
   }
-}
+};
 
-export const listSchedulesForCounselor = (counselorId: number) => {
+export const listSchedulesForCounselor = async (counselorId: number) => {
   try {
-    prisma.sessionSchedule.findMany({
+    return await prisma.sessionSchedule.findMany({
       where: { counselorId },
       include: {
         user: {
@@ -92,12 +92,12 @@ export const listSchedulesForCounselor = (counselorId: number) => {
       },
       orderBy: { startAt: "desc" },
     });
-  } catch (error:any) {
+  } catch (error: any) {
     throw new Error(error);
   }
-}
+};
 
-export const getScheduleById = (id: number) => {
+export const getScheduleById = async (id: number) => {
   try {
     return prisma.sessionSchedule.findUnique({
       where: { id },
@@ -122,10 +122,10 @@ export const getScheduleById = (id: number) => {
         },
       },
     });
-  } catch (error:any) {
+  } catch (error: any) {
     throw new Error(error);
   }
-}
+};
 
 export const updateScheduleStatus = async (
   id: number,
@@ -146,37 +146,37 @@ export const updateScheduleStatus = async (
       },
     });
     return s;
-  } catch (error:any) {
+  } catch (error: any) {
     throw new Error(error);
   }
 };
 
-export const deleteSchedule = (id: number) => {
+export const deleteSchedule = async (id: number) => {
   try {
     return prisma.sessionSchedule.delete({ where: { id } });
-  } catch (error:any) {
+  } catch (error: any) {
     throw new Error(error);
   }
-}
+};
 
-export const markReminderSent = (id: number) => {
+export const markReminderSent = async (id: number) => {
   try {
     return prisma.sessionSchedule.update({
       where: { id },
       data: { reminderSentAt: new Date() },
     });
-  } catch (error:any) {
+  } catch (error: any) {
     throw new Error(error);
   }
-}
+};
 
-export const markCompletedNotified = (id: number) => {
+export const markCompletedNotified = async (id: number) => {
   try {
     return prisma.sessionSchedule.update({
       where: { id },
       data: { completedNotifiedAt: new Date(), status: "COMPLETED" },
     });
-  } catch (error:any) {
+  } catch (error: any) {
     throw new Error(error);
   }
-}
+};

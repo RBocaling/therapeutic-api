@@ -5,7 +5,11 @@ export const createReferralController = async (req: Request, res: Response) => {
   try {
     const referrerId = Number(req.user?.id);
     if (!referrerId) return res.status(401).json({ message: "Unauthorized" });
-
+    
+    if (req.user?.role !== "MODERATOR") {
+      return res.status(201).json({ message: "Unautorized to access" });
+    }
+    
     const payload = {
       userId: Number(req.body.userId),
       counselorId: req.body.counselorId

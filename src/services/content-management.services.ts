@@ -98,6 +98,7 @@ export const updateContent = async (
     targetAudience?: "GENERAL" | "ADULTS" | "TEENS" | "CHILDREN";
     content?: string;
     videoUrl?: string;
+    isAnonymous?: boolean;
   }>
 ) => {
   try {

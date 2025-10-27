@@ -17,22 +17,21 @@ export const createCampaign = async (req: Request, res: Response) => {
       startDate,
       endDate,
       audienceTags,
+      isAnonymous,
     } = req.body;
 
-      if (req.user?.role !== "MODERATOR") {
-          res.status(201).json({message: "Unautorized to access"});
-      }
-        const data = await campaignService.createCampaign({
-          title,
-          content,
-          audienceTags,
-          type,
-          status,
-          imageUrl,
-          startDate: startDate ? new Date(startDate) : null,
-          endDate: endDate ? new Date(endDate) : null,
-          createdById,
-        });
+    const data = await campaignService.createCampaign({
+      isAnonymous,
+      title,
+      content,
+      audienceTags,
+      type,
+      status,
+      imageUrl,
+      startDate: startDate ? new Date(startDate) : null,
+      endDate: endDate ? new Date(endDate) : null,
+      createdById,
+    });
 
     res.status(201).json({ success: true, data });
   } catch (error: any) {
@@ -62,9 +61,9 @@ export const updateCampaignStatus = async (req: Request, res: Response) => {
 export const listCampaigns = async (_req: Request, res: Response) => {
   try {
     const campaigns = await campaignService.listCampaigns();
-    res.json(campaigns );
+    res.json(campaigns);
   } catch (error: any) {
-    res.status(500).json( error.message );
+    res.status(500).json(error.message);
   }
 };
 
@@ -120,6 +119,29 @@ export const listFeedbacks = async (req: Request, res: Response) => {
     const campaignId = Number(req.params.id);
     const data = await campaignService.listFeedbacks(campaignId);
     res.status(200).json({ success: true, data });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const updateCampaign = async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    const body = req.body;
+
+    const updated = await campaignService.updateCampaign(id, {
+      title: body.title,
+      content: body.content,
+      imageUrl: body.imageUrl ?? null,
+      audienceTags: body.audienceTags ?? null,
+      type: body.type,
+      status: body.status,
+      startDate: body.startDate ? new Date(body.startDate) : null,
+      endDate: body.endDate ? new Date(body.endDate) : null,
+      isAnonymous: body.isAnonymous,
+    });
+
+    res.status(200).json({ success: true, data: updated });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }

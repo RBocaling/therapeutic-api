@@ -1,6 +1,7 @@
 import prisma from "../config/prisma";
 
 export const createCampaign = async (data: {
+  isAnonymous: boolean;
   title: string;
   content: string;
   audienceTags?: string;
@@ -18,6 +19,7 @@ export const createCampaign = async (data: {
 
     return await prisma.awarenessCampaign.create({
       data: {
+        isAnonymous: data?.isAnonymous,
         title: data.title,
         content: data.content,
         type: data.type,
@@ -110,22 +112,33 @@ export const getCampaignById = async (id: number) => {
           },
         },
         comments: {
-          orderBy: { createdAt: "asc" },
           include: {
             user: {
               select: {
                 id: true,
                 firstName: true,
                 lastName: true,
+                middleName: true,
+                suffix: true,
+                email: true,
                 profilePic: true,
               },
             },
           },
         },
         feedbacks: {
-          orderBy: { createdAt: "desc" },
           include: {
-            user: { select: { id: true, firstName: true, lastName: true } },
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                middleName: true,
+                suffix: true,
+                email: true,
+                profilePic: true,
+              },
+            },
           },
         },
       },
@@ -232,5 +245,44 @@ export const listFeedbacks = async (campaignId?: number) => {
     });
   } catch (error) {
     throw new Error(`Failed to fetch feedbacks: ${error}`);
+  }
+};
+
+export const updateCampaign = async (
+  id: number,
+  data: Partial<{
+    title: string;
+    content: string;
+    imageUrl: string | null;
+    audienceTags: string | null;
+    type: "ANNOUNCEMENT" | "ARTICLE" | "EVENT";
+    status: "DRAFT" | "SCHEDULED" | "PUBLISHED" | "ARCHIVED";
+    startDate: Date | null;
+    endDate: Date | null;
+    isAnonymous: boolean;
+  }>
+) => {
+  try {
+    const campaign = await prisma.awarenessCampaign.findUnique({
+      where: { id },
+    });
+    if (!campaign) throw new Error("Campaign not found");
+
+    return await prisma.awarenessCampaign.update({
+      where: { id },
+      data: {
+        title: data.title ?? campaign.title,
+        content: data.content ?? campaign.content,
+        imageUrl: data.imageUrl ?? campaign.imageUrl,
+        audienceTags: data.audienceTags ?? campaign.audienceTags,
+        type: data.type ?? campaign.type,
+        status: data.status ?? campaign.status,
+        startDate: data.startDate ?? campaign.startDate,
+        endDate: data.endDate ?? campaign.endDate,
+        isAnonymous: data.isAnonymous ?? campaign.isAnonymous,
+      },
+    });
+  } catch (error) {
+    throw new Error(`Failed to update campaign: ${error}`);
   }
 };

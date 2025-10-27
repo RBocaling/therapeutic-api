@@ -6,8 +6,8 @@ const router = Router();
 
 router.post("/", authenticateUser, campaignController.createCampaign as any);
 router.get("/", authenticateUser, campaignController.listCampaigns);
-router.patch(
-  "/:id/status",
+router.put(
+  "/status/:id",
   authenticateUser,
   campaignController.updateCampaignStatus as any
 );
@@ -18,6 +18,11 @@ router.post(
   authenticateUser,
   campaignController.submitFeedback
 );
-router.get("/feedbacks/:id", authenticateUser, campaignController.listFeedbacks);
+router.get(
+  "/feedbacks/:id",
+  authenticateUser,
+  campaignController.listFeedbacks
+);
+router.put("/:id", authenticateUser, campaignController.updateCampaign);
 
 export default router;
