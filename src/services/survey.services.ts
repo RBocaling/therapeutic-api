@@ -285,11 +285,26 @@ export const getAllUserProgressMonitoring = async () => {
           include: { surveyForm: true },
           orderBy: { createdAt: "desc" },
         },
+        UserNotes: {
+          include: {
+            counselor: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                role: true,
+                profilePic: true,
+              },
+            },
+          },
+          orderBy: { createdAt: "desc" },
+        },
       },
     });
 
     const result = users.map((user) => {
       const responses = user.responses || [];
+      const notes = user.UserNotes || [];
 
       if (responses.length === 0) {
         return {
@@ -302,6 +317,7 @@ export const getAllUserProgressMonitoring = async () => {
           improvementStatus: "No Data",
           lastAssessment: null,
           totalSessions: 0,
+          notes,
         };
       }
 
@@ -338,12 +354,49 @@ export const getAllUserProgressMonitoring = async () => {
         improvementStatus: status || improvement || "Stable",
         lastAssessment,
         totalSessions,
+        notes,
       };
     });
 
     return result;
   } catch (error: any) {
     throw new Error(error);
+  }
+};
+
+export const createNote = async (data: {
+  userId: number;
+  counselorId: number;
+  noteType: "SESSION_NOTE" | "OBSERVATION" | "ASSESSMENT" | "INTERVENTION";
+  mood: "POSITIVE" | "NEUTRAL" | "NEGATIVE";
+  riskLevel: "LOW" | "MEDIUM" | "HIGH";
+  content: string;
+  tags?: string | null;
+}) => {
+  try {
+    const note = await prisma.counselorNote.create({
+      data: {
+        userId: data.userId,
+        counselorId: data.counselorId,
+        noteType: data.noteType,
+        mood: data.mood,
+        riskLevel: data.riskLevel,
+        content: data.content,
+        tags: data.tags ?? null,
+      },
+      include: {
+        user: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
+        counselor: {
+          select: { id: true, firstName: true, lastName: true, role: true },
+        },
+      },
+    });
+
+    return note;
+  } catch (error: any) {
+    throw new Error(`Failed to create note: ${error.message}`);
   }
 };
 

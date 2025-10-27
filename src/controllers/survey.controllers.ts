@@ -128,6 +128,30 @@ export const getAllUserProgressMonitoring = async (
   }
 };
 
+export const createNote = async (req: Request, res: Response) => {
+  try {
+    const counselorId = Number(req.user?.id);
+    if (!counselorId)
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+
+    const { userId, noteType, mood, riskLevel, content, tags } = req.body;
+
+    const note = await surveyService.createNote({
+      userId,
+      counselorId,
+      noteType,
+      mood,
+      riskLevel,
+      content,
+      tags,
+    });
+
+    res.status(201).json({ success: true, data: note });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // anyalysis
 export const getAnalyticsController = async (req: Request, res: Response) => {
   try {

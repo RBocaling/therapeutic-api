@@ -120,6 +120,10 @@ model User {
   SubmittedSupports      ContactSupport[]    @relation("UserContactSupport")
   SupportResponses       SupportResponse[]   @relation("UserSupportResponse")
 
+// notess
+  CounselorNotes  CounselorNote[] @relation("CounselorNotes") // ✅ As counselor writing notes
+  UserNotes       CounselorNote[] @relation("UserNotes") 
+
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
 }
@@ -547,4 +551,39 @@ enum SupportStatus {
   PENDING
   IN_PROGRESS
   RESOLVED
+}
+
+enum NoteType {
+  SESSION_NOTE
+  OBSERVATION
+  ASSESSMENT
+  INTERVENTION
+}
+
+enum MoodType {
+  POSITIVE
+  NEUTRAL
+  NEGATIVE
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model CounselorNote {
+  id           Int        @id @default(autoincrement())
+  userId       Int
+  counselorId  Int
+  noteType     NoteType
+  mood         MoodType
+  riskLevel    RiskLevel
+  content      String     @db.Text
+  tags         String?    // Comma-separated tags
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  user         User       @relation("UserNotes", fields: [userId], references: [id])
+  counselor    User       @relation("CounselorNotes", fields: [counselorId], references: [id])
 }

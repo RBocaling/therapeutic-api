@@ -18,11 +18,17 @@ router.get(
 );
 
 router.post("/:code/submit", authenticateUser, survey.submitSurveyResponses);
+router.post(
+  "/progress-monitoring/notes",
+  authenticateUser,
+  survey.createNote as any
+);
 router.get(
   "/progress-monitoring",
   authenticateUser,
   survey.getAllUserProgressMonitoring
 );
+
 
 // view
 router.get(
