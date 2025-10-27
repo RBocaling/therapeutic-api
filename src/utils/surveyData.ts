@@ -629,60 +629,418 @@ export const seedAllSurveysData = [
   },
   // --- Other Surveys (PHQ-9, GAD-7, Combined) ---
   {
-    title: "Patient Health Questionnaire 9",
-    description: "PHQ-9: Measures depression severity.",
+    title: "Patient Health Questionnaire (PHQ-9)",
+    description: "Measures depression severity over the past 2 weeks.",
     code: "PHQ-9",
     questions: [
-      // Only one question example is provided, maintaining the original structure
       {
         questionName: "Little interest or pleasure in doing things",
         questionType: "single_choice",
         options: {
           options: [
-            "Not at all",
-            "Several days",
-            "More than half the days",
-            "Nearly every day",
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
+          ],
+        },
+      },
+      {
+        questionName: "Feeling down, depressed, or hopeless",
+        questionType: "single_choice",
+        options: {
+          options: [
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
+          ],
+        },
+      },
+      {
+        questionName: "Trouble falling or staying asleep, or sleeping too much",
+        questionType: "single_choice",
+        options: {
+          options: [
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
+          ],
+        },
+      },
+      {
+        questionName: "Feeling tired or having little energy",
+        questionType: "single_choice",
+        options: {
+          options: [
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
+          ],
+        },
+      },
+      {
+        questionName: "Poor appetite or overeating",
+        questionType: "single_choice",
+        options: {
+          options: [
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
+          ],
+        },
+      },
+      {
+        questionName:
+          "Feeling bad about yourself — or that you are a failure or have let yourself or your family down",
+        questionType: "single_choice",
+        options: {
+          options: [
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
+          ],
+        },
+      },
+      {
+        questionName:
+          "Trouble concentrating on things, such as reading or watching television",
+        questionType: "single_choice",
+        options: {
+          options: [
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
+          ],
+        },
+      },
+      {
+        questionName:
+          "Moving or speaking so slowly that other people could have noticed? Or being so fidgety or restless that you have been moving more than usual",
+        questionType: "single_choice",
+        options: {
+          options: [
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
+          ],
+        },
+      },
+      {
+        questionName:
+          "Thoughts that you would be better off dead or of hurting yourself in some way",
+        questionType: "single_choice",
+        options: {
+          options: [
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
           ],
         },
       },
     ],
   },
+
   {
-    title: "Generalized Anxiety Disorder 7",
-    description: "GAD-7: Measures anxiety levels.",
+    title: "Generalized Anxiety Disorder (GAD-7)",
+    description: "Measures anxiety severity over the past 2 weeks.",
     code: "GAD-7",
     questions: [
-      // Only one question example is provided, maintaining the original structure
       {
         questionName: "Feeling nervous, anxious, or on edge",
         questionType: "single_choice",
         options: {
           options: [
-            "Not at all",
-            "Several days",
-            "More than half the days",
-            "Nearly every day",
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
+          ],
+        },
+      },
+      {
+        questionName: "Not being able to stop or control worrying",
+        questionType: "single_choice",
+        options: {
+          options: [
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
+          ],
+        },
+      },
+      {
+        questionName: "Worrying too much about different things",
+        questionType: "single_choice",
+        options: {
+          options: [
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
+          ],
+        },
+      },
+      {
+        questionName: "Trouble relaxing",
+        questionType: "single_choice",
+        options: {
+          options: [
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
+          ],
+        },
+      },
+      {
+        questionName: "Being so restless that it is hard to sit still",
+        questionType: "single_choice",
+        options: {
+          options: [
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
+          ],
+        },
+      },
+      {
+        questionName: "Becoming easily annoyed or irritable",
+        questionType: "single_choice",
+        options: {
+          options: [
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
+          ],
+        },
+      },
+      {
+        questionName: "Feeling afraid as if something awful might happen",
+        questionType: "single_choice",
+        options: {
+          options: [
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
           ],
         },
       },
     ],
   },
   {
-    title: "Combined PHQ-9 + GAD-7",
-    description: "Combined flow for both PHQ-9 and GAD-7 assessments.",
+    title: "Combined PHQ-9 + GAD-7 Assessment",
+    description:
+      "A combined screening for depression and anxiety using PHQ-9 and GAD-7 scales.",
     code: "COMBINED",
     questions: [
-      // Only one question example is provided, maintaining the original structure
+      // --- PHQ-9 (Depression) ---
       {
         questionName: "Little interest or pleasure in doing things",
         questionType: "single_choice",
         options: {
           options: [
-            "Not at all",
-            "Several days",
-            "More than half the days",
-            "Nearly every day",
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
+          ],
+        },
+      },
+      {
+        questionName: "Feeling down, depressed, or hopeless",
+        questionType: "single_choice",
+        options: {
+          options: [
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
+          ],
+        },
+      },
+      {
+        questionName: "Trouble falling or staying asleep, or sleeping too much",
+        questionType: "single_choice",
+        options: {
+          options: [
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
+          ],
+        },
+      },
+      {
+        questionName: "Feeling tired or having little energy",
+        questionType: "single_choice",
+        options: {
+          options: [
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
+          ],
+        },
+      },
+      {
+        questionName: "Poor appetite or overeating",
+        questionType: "single_choice",
+        options: {
+          options: [
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
+          ],
+        },
+      },
+      {
+        questionName:
+          "Feeling bad about yourself — or that you are a failure or have let yourself or your family down",
+        questionType: "single_choice",
+        options: {
+          options: [
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
+          ],
+        },
+      },
+      {
+        questionName:
+          "Trouble concentrating on things, such as reading or watching television",
+        questionType: "single_choice",
+        options: {
+          options: [
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
+          ],
+        },
+      },
+      {
+        questionName:
+          "Moving or speaking so slowly that other people could have noticed? Or being so fidgety or restless that you have been moving more than usual",
+        questionType: "single_choice",
+        options: {
+          options: [
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
+          ],
+        },
+      },
+      {
+        questionName:
+          "Thoughts that you would be better off dead or of hurting yourself in some way",
+        questionType: "single_choice",
+        options: {
+          options: [
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
+          ],
+        },
+      },
+
+      // --- GAD-7 (Anxiety) ---
+      {
+        questionName: "Feeling nervous, anxious, or on edge",
+        questionType: "single_choice",
+        options: {
+          options: [
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
+          ],
+        },
+      },
+      {
+        questionName: "Not being able to stop or control worrying",
+        questionType: "single_choice",
+        options: {
+          options: [
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
+          ],
+        },
+      },
+      {
+        questionName: "Worrying too much about different things",
+        questionType: "single_choice",
+        options: {
+          options: [
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
+          ],
+        },
+      },
+      {
+        questionName: "Trouble relaxing",
+        questionType: "single_choice",
+        options: {
+          options: [
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
+          ],
+        },
+      },
+      {
+        questionName: "Being so restless that it is hard to sit still",
+        questionType: "single_choice",
+        options: {
+          options: [
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
+          ],
+        },
+      },
+      {
+        questionName: "Becoming easily annoyed or irritable",
+        questionType: "single_choice",
+        options: {
+          options: [
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
+          ],
+        },
+      },
+      {
+        questionName: "Feeling afraid as if something awful might happen",
+        questionType: "single_choice",
+        options: {
+          options: [
+            { text: "Not at all", score: 0 },
+            { text: "Several days", score: 1 },
+            { text: "More than half the days", score: 2 },
+            { text: "Nearly every day", score: 3 },
           ],
         },
       },
