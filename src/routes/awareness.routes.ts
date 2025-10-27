@@ -24,5 +24,10 @@ router.get(
   campaignController.listFeedbacks
 );
 router.put("/:id", authenticateUser, campaignController.updateCampaign);
+router.put(
+  "/approve/:id",
+  authenticateUser,
+  campaignController.updateCampaignPostApprove
+);
 
 export default router;

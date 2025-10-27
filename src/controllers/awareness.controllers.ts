@@ -57,6 +57,24 @@ export const updateCampaignStatus = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+export const updateCampaignPostApprove = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const id = Number(req.params.id);
+
+    const isPostApproved = req.body.isPostApproved;
+    const updated = await campaignService.updateCampaignIsPostApproved(
+      id,
+      isPostApproved
+    );
+    res.json({ success: true, data: updated });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 
 export const listCampaigns = async (_req: Request, res: Response) => {
   try {

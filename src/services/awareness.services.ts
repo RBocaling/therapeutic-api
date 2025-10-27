@@ -50,6 +50,19 @@ export const updateCampaignStatus = async (id: number, status: any) => {
     throw new Error(`Failed to update campaign status: ${error}`);
   }
 };
+export const updateCampaignIsPostApproved = async (
+  id: number,
+  isPostApproved: any
+) => {
+  try {
+    return await prisma.awarenessCampaign.update({
+      where: { id },
+      data: { isPostApproved },
+    });
+  } catch (error) {
+    throw new Error(`Failed to update campaign status: ${error}`);
+  }
+};
 
 export const listCampaigns = async () => {
   try {
