@@ -91,8 +91,8 @@ export const viewContentById = async (id: number) => {
 export const updateContent = async (
   id: number,
   data: Partial<{
-    title: string;
-    type: "GUIDE" | "COURSE" | "RESOURCE";
+    title?: string;
+    type?: "GUIDE" | "COURSE" | "RESOURCE";
     description?: string;
     category?: string;
     targetAudience?: "GENERAL" | "ADULTS" | "TEENS" | "CHILDREN";
