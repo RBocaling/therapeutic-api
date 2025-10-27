@@ -99,6 +99,7 @@ export const updateContent = async (
     content?: string;
     videoUrl?: string;
     isAnonymous?: boolean;
+    isPostApproved?: boolean;
   }>
 ) => {
   try {
