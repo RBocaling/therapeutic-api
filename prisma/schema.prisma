@@ -111,6 +111,15 @@ model User {
   // tlc
   guidedTLCPlans  GuidedTLCPlan[]
   
+  // Peer Support
+  InitiatedPeerSupports PeerSupport[] @relation("PeerSupportInitiator")
+  ReceivedPeerSupports  PeerSupport[] @relation("PeerSupportRecipient")
+  SentPeerMessages      PeerMessage[]
+
+  // contact support
+  SubmittedSupports      ContactSupport[]    @relation("UserContactSupport")
+  SupportResponses       SupportResponse[]   @relation("UserSupportResponse")
+
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
 }
@@ -317,6 +326,35 @@ enum CampaignStatus {
   ARCHIVED
 }
 
+model PeerSupport {
+  id            Int              @id @default(autoincrement())
+  initiatorId   Int
+  recipientId   Int
+  campaignId    Int?
+  isAnonymous   Boolean          @default(false)
+  isActive      Boolean          @default(true)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  initiator     User             @relation("PeerSupportInitiator", fields: [initiatorId], references: [id])
+  recipient     User             @relation("PeerSupportRecipient", fields: [recipientId], references: [id])
+  campaign      AwarenessCampaign? @relation(fields: [campaignId], references: [id])
+  messages      PeerMessage[]
+}
+
+model PeerMessage {
+  id             Int         @id @default(autoincrement())
+  peerSupportId  Int
+  senderId       Int
+  message        String?
+  imageUrl       String?
+  isRead         Boolean     @default(false)
+  createdAt      DateTime    @default(now())
+
+  peerSupport    PeerSupport @relation(fields: [peerSupportId], references: [id])
+  sender         User        @relation(fields: [senderId], references: [id])
+}
+
 
 model AwarenessCampaign {
   id            Int             @id @default(autoincrement())
@@ -335,6 +373,7 @@ model AwarenessCampaign {
   createdBy     User            @relation("CreatedCampaigns", fields: [createdById], references: [id])
   comments      Comment[]
   feedbacks     Feedback[]
+   peerSupports   PeerSupport[]
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
 }
@@ -474,4 +513,37 @@ model GuidedTLCDay {
   plan         GuidedTLCPlan @relation(fields: [planId], references: [id])
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+}
+
+
+model ContactSupport {
+  id           Int              @id @default(autoincrement())
+  userId       Int
+  subject      String
+  message      String
+  imageUrl     String?
+  status       SupportStatus    @default(PENDING)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  user         User             @relation("UserContactSupport", fields: [userId], references: [id])
+
+  responses    SupportResponse[]
+}
+
+model SupportResponse {
+  id               Int             @id @default(autoincrement())
+  contactSupportId Int
+  responderId      Int
+  message          String
+  imageUrl         String?
+  createdAt        DateTime        @default(now())
+
+  contactSupport   ContactSupport  @relation(fields: [contactSupportId], references: [id])
+  responder        User            @relation("UserSupportResponse", fields: [responderId], references: [id])
+}
+
+enum SupportStatus {
+  PENDING
+  IN_PROGRESS
+  RESOLVED
 }
