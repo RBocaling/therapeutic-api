@@ -603,79 +603,99 @@ export const getAnalytics = async (counselorId?: number) => {
 };
 
 export const getCriticalAlerts = async (counselorId?: number) => {
-  const referrals = await prisma.referral.findMany({
-    where: counselorId ? { counselorId } : {},
-    include: {
-      user: {
-        include: {
-          profile: true,
-          responses: {
-            include: { surveyForm: true },
-            orderBy: { createdAt: "desc" },
+  try {
+    const referrals = await prisma.referral.findMany({
+      where: counselorId ? { counselorId } : {},
+      include: {
+        user: {
+          include: {
+            profile: true,
+            responses: {
+              include: { surveyForm: true },
+              orderBy: { createdAt: "desc" },
+            },
           },
         },
       },
-    },
-  });
+    });
 
-  const alerts = referrals.map((r) => {
-    const latestResponse = r.user.responses[0];
-    const latestSurvey = latestResponse?.surveyForm?.code || "N/A";
-    const category = latestResponse?.resultCategory || "Normal";
+    const alerts = referrals.map((ref) => {
+      const latestResponse = ref.user.responses[0];
+      const latestSurvey = latestResponse?.surveyForm?.code || "N/A";
+      const category = latestResponse?.resultCategory || "Normal";
 
-    let riskLevel: "Low" | "Medium" | "High" | "Critical" = "Low";
+      let riskLevel: "Low" | "Medium" | "High" | "Critical" = "Low";
 
-    if (
-      category.includes("Severe") ||
-      category.includes("At Risk") ||
-      category.includes("Crisis")
-    )
-      riskLevel = "Critical";
-    else if (category.includes("Moderate") || category.includes("Struggling"))
-      riskLevel = "High";
-    else if (category.includes("Mild") || category.includes("Responding"))
-      riskLevel = "Medium";
-    else if (category.includes("Healthy") || category.includes("Normal"))
-      riskLevel = "Low";
+      if (
+        category.includes("Severe") ||
+        category.includes("At Risk") ||
+        category.includes("Crisis")
+      ) {
+        riskLevel = "Critical";
+      } else if (
+        category.includes("Moderate") ||
+        category.includes("Struggling")
+      ) {
+        riskLevel = "High";
+      } else if (category.includes("Mild") || category.includes("Responding")) {
+        riskLevel = "Medium";
+      } else if (category.includes("Healthy") || category.includes("Normal")) {
+        riskLevel = "Low";
+      }
 
-    const priority =
-      riskLevel === "Critical"
-        ? "URGENT"
-        : riskLevel === "High"
-        ? "HIGH"
-        : riskLevel === "Medium"
-        ? "MEDIUM"
-        : "LOW";
+      const priority =
+        riskLevel === "Critical"
+          ? "URGENT"
+          : riskLevel === "High"
+          ? "HIGH"
+          : riskLevel === "Medium"
+          ? "MEDIUM"
+          : "LOW";
+
+      return {
+        referralId: ref.id,
+        userId: ref.user.id,
+        userName: `${ref.user.firstName} ${ref.user.lastName}`,
+        surveyCode: latestSurvey,
+        resultCategory: category,
+        riskLevel,
+        priority,
+        status: ref.status,
+        acknowledgeStatus: ref.acknowledgeStatus,
+        createdAt: ref.createdAt,
+      };
+    });
+
+    const uniqueAlerts = Array.from(
+      new Map(alerts.map((a) => [a.userId, a])).values()
+    );
+
+    const criticalAlerts = uniqueAlerts.filter(
+      (a) => a.riskLevel === "Critical"
+    );
+
+    const summary = {
+      totalAlerts: uniqueAlerts.length,
+      critical: criticalAlerts.length,
+      new: criticalAlerts.filter((a) => !a.acknowledgeStatus).length,
+      inProgress: criticalAlerts.filter(
+        (a) => a.status === "ACCEPTED" || a.status === "PENDING"
+      ).length,
+      resolved: criticalAlerts.filter((a) => a.status === "COMPLETED").length,
+    };
 
     return {
-      referralId: r.id,
-      userId: r.user.id,
-      userName: `${r.user.firstName} ${r.user.lastName}`,
-      surveyCode: latestSurvey,
-      resultCategory: category,
-      riskLevel,
-      priority,
-      status: r.status,
-      acknowledgeStatus: r.acknowledgeStatus,
-      createdAt: r.createdAt,
+      summary,
+      alerts: uniqueAlerts,
     };
-  });
-
-  const summary = {
-    totalAlerts: alerts.length,
-    critical: alerts.filter((a) => a.riskLevel === "Critical").length,
-    new: alerts.filter((a) => !a.acknowledgeStatus).length,
-    inProgress: alerts.filter(
-      (a) => a.status === "ACCEPTED" || a.status === "PENDING"
-    ).length,
-    resolved: alerts.filter((a) => a.status === "COMPLETED").length,
-  };
-
-  return {
-    summary,
-    alerts: alerts.filter((a) => a.riskLevel !== "Low"),
-  };
+  } catch (error: any) {
+    throw new Error(error.message || "Failed to fetch alerts");
+  }
 };
+
+
+
+
 
 export const acknowledgeAlert = async (id: number) => {
   try {

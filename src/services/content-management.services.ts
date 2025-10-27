@@ -90,7 +90,7 @@ export const viewContentById = async (id: number) => {
 
 export const updateContent = async (
   id: number,
-  data: Partial<{
+  data: {
     title?: string;
     type?: "GUIDE" | "COURSE" | "RESOURCE";
     description?: string;
@@ -98,19 +98,22 @@ export const updateContent = async (
     targetAudience?: "GENERAL" | "ADULTS" | "TEENS" | "CHILDREN";
     status?: "DRAFT" | "SCHEDULED" | "PUBLISHED" | "ARCHIVED";
     content?: string;
-    videoUrl?: string;
+    imageUrl?: string;
     isAnonymous?: boolean;
     isPostApproved?: boolean;
-  }>
+  }
 ) => {
+  console.log("Service data received:", data); // ✅ should now log true
+
   try {
-    const content = await prisma.content.update({
+    const updated = await prisma.content.update({
       where: { id },
       data,
     });
-    return content;
+
+    return updated;
   } catch (error: any) {
-    throw new Error(error);
+    throw new Error(error.message || "Failed to update content");
   }
 };
 

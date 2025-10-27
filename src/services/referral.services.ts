@@ -29,6 +29,22 @@ export const createReferral = async (payload: {
     });
     if (!referrer) throw new Error("Referrer not found");
 
+    if (payload.counselorId) {
+      const existingReferral = await prisma.referral.findFirst({
+        where: {
+          userId: payload.userId,
+          counselorId: payload.counselorId,
+          status: { in: ["SENT", "ACCEPTED", "PENDING"] }, // active referrals only
+        },
+      });
+
+      if (existingReferral) {
+        throw new Error(
+          "This user is already referred to the same counselor. Duplicate referrals are not allowed."
+        );
+      }
+    }
+
     const referral = await prisma.referral.create({
       data: {
         userId: payload.userId,
@@ -53,27 +69,28 @@ export const createReferral = async (payload: {
       },
     });
 
-    if (referral.counselorId) {        
-        await createNotification({
-          recipientId: referral.counselorId,
-          type: "REFERRAL",
-          title: "New Referral Assigned",
-          message: `You have been assigned a referral for ${referral.user.firstName} ${referral.user.lastName}.`,
-        });
+    if (referral.counselorId) {
+      await createNotification({
+        recipientId: referral.counselorId,
+        type: "REFERRAL",
+        title: "New Referral Assigned",
+        message: `You have been assigned a referral for ${referral.user.firstName} ${referral.user.lastName}.`,
+      });
     }
 
-      await createNotification({
-        recipientId: referral.referrerId,
-        type: "REFERRAL",
-        title: "Referral Sent",
-        message: `Referral for ${referral.user.firstName} ${referral.user.lastName} has been created.`,
-      });
+    await createNotification({
+      recipientId: referral.referrerId,
+      type: "REFERRAL",
+      title: "Referral Sent",
+      message: `Referral for ${referral.user.firstName} ${referral.user.lastName} has been created.`,
+    });
 
     return referral;
   } catch (error: any) {
     throw new Error(error.message || "Failed to create referral");
   }
 };
+
 
 export const listReferrals = async (id:number, role:any) => {
 
