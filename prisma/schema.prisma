@@ -565,7 +565,7 @@ model Module {
 model Lesson {
   id          Int       @id @default(autoincrement())
   title       String
-  description String?
+  description String? @db.Text
   duration    String?
   order       Int
   moduleId    Int
@@ -581,7 +581,7 @@ model Content {
   lesson         Lesson           @relation(fields: [lessonId], references: [id])
   title          String
   type           ContentType
-  description    String?
+  description    String? @db.Text
   category       String?
   content        String?
   videoUrls      Json?
@@ -596,7 +596,7 @@ model Content {
 model CourseImage {
   id        Int       @id @default(autoincrement())
   courseId  Int
-  imageUrl  String
+  imageUrl  String? @db.Text
   course    ContentCourse @relation(fields: [courseId], references: [id])
   createdAt DateTime @default(now())
 }
@@ -605,8 +605,8 @@ model CourseVideo {
   id        Int       @id @default(autoincrement())
   courseId  Int
   title     String
-  description String?
-  videoUrl  String
+  description String? @db.Text
+  videoUrl  String? @db.Text
   course    ContentCourse @relation(fields: [courseId], references: [id])
   createdAt DateTime @default(now())
 }
