@@ -6,6 +6,11 @@ const router = Router();
 
 router.post("/", authenticateUser, campaignController.createCampaign as any);
 router.get("/", authenticateUser, campaignController.listCampaigns);
+router.get(
+  "/counselor",
+  authenticateUser,
+  campaignController.counselorListCampaigns
+);
 router.put(
   "/status/:id",
   authenticateUser,

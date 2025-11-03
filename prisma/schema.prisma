@@ -114,9 +114,7 @@ model User {
   guidedTLCPlans  GuidedTLCPlan[]
   
   // Peer Support
-  InitiatedPeerSupports PeerSupport[] @relation("PeerSupportInitiator")
-  ReceivedPeerSupports  PeerSupport[] @relation("PeerSupportRecipient")
-  SentPeerMessages      PeerMessage[]
+  peerSupports  PeerSupport[]
 
   // contact support
   SubmittedSupports      ContactSupport[]    @relation("UserContactSupport")
@@ -339,35 +337,6 @@ enum CampaignStatus {
   ARCHIVED
 }
 
-model PeerSupport {
-  id            Int              @id @default(autoincrement())
-  initiatorId   Int
-  recipientId   Int
-  campaignId    Int?
-  isAnonymous   Boolean          @default(false)
-  isActive      Boolean          @default(true)
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
-
-  initiator     User             @relation("PeerSupportInitiator", fields: [initiatorId], references: [id])
-  recipient     User             @relation("PeerSupportRecipient", fields: [recipientId], references: [id])
-  campaign      AwarenessCampaign? @relation(fields: [campaignId], references: [id])
-  messages      PeerMessage[]
-}
-
-model PeerMessage {
-  id             Int         @id @default(autoincrement())
-  peerSupportId  Int
-  senderId       Int
-  message        String?
-  imageUrl       String? @db.Text
-  isRead         Boolean     @default(false)
-  createdAt      DateTime    @default(now())
-
-  peerSupport    PeerSupport @relation(fields: [peerSupportId], references: [id])
-  sender         User        @relation(fields: [senderId], references: [id])
-}
-
 
 model AwarenessCampaign {
   id            Int             @id @default(autoincrement())
@@ -386,9 +355,8 @@ model AwarenessCampaign {
   createdBy     User            @relation("CreatedCampaigns", fields: [createdById], references: [id])
   comments      Comment[]
   feedbacks     Feedback[]
-   peerSupports   PeerSupport[]
   createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  updatedAt     DateTime        @updatedAt 
 }
 
 model Comment {
@@ -570,7 +538,6 @@ model Course {
 }
 
 
-
 model ContentCourse {
   id           Int        @id @default(autoincrement())
   title        String
@@ -629,23 +596,21 @@ model Content {
 }
 
 model CourseImage {
-  id          Int       @id @default(autoincrement())
-  courseId    Int
-  title       String
-  description String?
-  imageUrl    String
-  course      ContentCourse @relation(fields: [courseId], references: [id])
-  createdAt   DateTime @default(now())
+  id        Int       @id @default(autoincrement())
+  courseId  Int
+  imageUrl  String
+  course    ContentCourse @relation(fields: [courseId], references: [id])
+  createdAt DateTime @default(now())
 }
 
 model CourseVideo {
-  id          Int       @id @default(autoincrement())
-  courseId    Int
-  title       String
+  id        Int       @id @default(autoincrement())
+  courseId  Int
+  title     String
   description String?
-  videoUrl    String
-  course      ContentCourse @relation(fields: [courseId], references: [id])
-  createdAt   DateTime @default(now())
+  videoUrl  String
+  course    ContentCourse @relation(fields: [courseId], references: [id])
+  createdAt DateTime @default(now())
 }
 
 model ContentRating {
@@ -659,6 +624,12 @@ model ContentRating {
   content     Content  @relation(fields: [contentId], references: [id], name: "ContentRatings")
   user        User     @relation(fields: [userId], references: [id], name: "UserRatings")
   @@unique([contentId, userId])
+}
+
+enum CourseType {
+  MODULES
+  IMAGES
+  VIDEOS
 }
 
 enum ContentType {
@@ -675,11 +646,7 @@ enum TargetAudience {
   CHILDREN
 }
 
-enum CourseType {
-  MODULES
-  IMAGES
-  VIDEOS
-}
+
 
 
 model SupportTicket {
@@ -707,4 +674,44 @@ model AuditTrail {
   type        String
   description String? @db.Text
   createdAt   DateTime  @default(now())
+}
+
+
+
+model PeerSupport {
+  id          Int             @id @default(autoincrement())
+  userId      Int
+  title       String
+  category    String?
+  priority    Priority         @default(MEDIUM)
+  message     String?
+  imageUrl    String?
+  isAnonymous Boolean          @default(false)
+  status      PeerStatus       @default(OPEN)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  messages    PeerMessage[]
+
+  user        User             @relation(fields: [userId], references: [id])
+}
+
+model PeerMessage {
+  id            Int         @id @default(autoincrement())
+  peerSupportId Int
+  fromMessage   MessageFrom
+  message       String?
+  imageUrl      String?
+  createdAt     DateTime    @default(now())
+
+  peerSupport   PeerSupport @relation(fields: [peerSupportId], references: [id])
+}
+
+enum PeerStatus {
+  OPEN
+  CLOSED
+}
+
+enum MessageFrom {
+  USER
+  MODERATOR
 }

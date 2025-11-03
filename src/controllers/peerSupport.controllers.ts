@@ -3,62 +3,102 @@ import * as peerService from "../services/peerSupport.services";
 
 export const createPeerSupport = async (req: Request, res: Response) => {
   try {
-    const initiatorId = Number(req.user?.id);
-    if (!initiatorId)
+    const userId = Number(req.user?.id);
+    if (!userId)
       return res.status(401).json({ success: false, message: "Unauthorized" });
-
-    const { recipientId, campaignId, isAnonymous } = req.body;
 
     const data = await peerService.createPeerSupport({
-      initiatorId,
-      recipientId,
-      campaignId,
-      isAnonymous,
+      userId,
+      title: req.body.title,
+      category: req.body.category,
+      priority: req.body.priority,
+      message: req.body.message,
+      imageUrl: req.body.imageUrl,
+      isAnonymous: req.body.isAnonymous,
     });
 
     res.status(201).json({ success: true, data });
   } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
   }
 };
 
-export const sendPeerMessage = async (req: Request, res: Response) => {
+export const listPeerSupports = async (_req: Request, res: Response) => {
   try {
-    const senderId = Number(req.user?.id);
-    if (!senderId)
-      return res.status(401).json({ success: false, message: "Unauthorized" });
-
-    const { peerSupportId, message, imageUrl } = req.body;
-
-    const data = await peerService.sendPeerMessage({
-      peerSupportId,
-      senderId,
-      message,
-      imageUrl,
-    });
-
-    res.status(201).json({ success: true, data });
+    const data = await peerService.listPeerSupports();
+    res.json({ success: true, data });
   } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
   }
 };
 
-export const getPeerMessages = async (req: Request, res: Response) => {
+export const getPeerSupportById = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
-    const data = await peerService.getPeerMessages(id);
-    res.status(200).json(data);
+    const data = await peerService.getPeerSupportById(id);
+    if (!data)
+      return res
+        .status(404)
+        .json({ success: false, message: "Peer support not found" });
+    res.json({ success: true, data });
   } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
   }
 };
 
-export const listPeerSupports = async (req: Request, res: Response) => {
+export const sendMessage = async (req: Request, res: Response) => {
   try {
-    const userId = Number(req.user?.id);
-    const data = await peerService.listPeerSupports(userId);
-    res.status(200).json(data);
+    const peerSupportId = Number(req.params.id);
+    const role = req.user?.role;
+    const fromMessage = role === "MODERATOR" ? "MODERATOR" : "USER";
+
+    const data = await peerService.sendMessage({
+      peerSupportId,
+      fromMessage,
+      message: req.body.message,
+      imageUrl: req.body.imageUrl,
+    });
+
+    res.status(201).json({ success: true, data });
   } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
+};
+
+export const listMessages = async (req: Request, res: Response) => {
+  try {
+    const peerSupportId = Number(req.params.id);
+    const data = await peerService.listMessages(peerSupportId);
+    res.json({ success: true, data });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
+};
+
+export const closePeerSupport = async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    const data = await peerService.closePeerSupport(id);
+    res.json({ success: true, data });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
   }
 };

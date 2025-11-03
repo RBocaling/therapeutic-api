@@ -25,7 +25,7 @@ export const createCourse = async (data: {
       }[];
     }[];
   }[];
-  images?: { title: string; description?: string; imageUrl: string }[];
+  images?: string[];
   videos?: { title: string; description?: string; videoUrl: string }[];
 }) => {
   try {
@@ -75,13 +75,11 @@ export const createCourse = async (data: {
       }
 
       if (data.type === "IMAGES" && data.images) {
-        for (const img of data.images) {
+        for (const imageUrl of data.images) {
           await tx.courseImage.create({
             data: {
               courseId: course.id,
-              title: img.title,
-              description: img.description,
-              imageUrl: img.imageUrl,
+              imageUrl,
             },
           });
         }
@@ -181,74 +179,6 @@ export const updateCourse = async (
     return await prisma.contentCourse.update({ where: { id }, data });
   } catch (error: any) {
     throw new Error(error.message || "Failed to update course");
-  }
-};
-
-export const updateModule = async (
-  id: number,
-  data: { title?: string; order?: number }
-) => {
-  try {
-    return await prisma.module.update({ where: { id }, data });
-  } catch (error: any) {
-    throw new Error(error.message || "Failed to update module");
-  }
-};
-
-export const updateLesson = async (
-  id: number,
-  data: {
-    title?: string;
-    description?: string;
-    duration?: string;
-    order?: number;
-  }
-) => {
-  try {
-    return await prisma.lesson.update({ where: { id }, data });
-  } catch (error: any) {
-    throw new Error(error.message || "Failed to update lesson");
-  }
-};
-
-export const updateContent = async (
-  id: number,
-  data: {
-    title?: string;
-    description?: string;
-    category?: string;
-    targetAudience?: "GENERAL" | "ADULTS" | "TEENS" | "CHILDREN";
-    content?: string;
-    videoUrls?: string[];
-    imageUrls?: string[];
-  }
-) => {
-  try {
-    return await prisma.content.update({ where: { id }, data });
-  } catch (error: any) {
-    throw new Error(error.message || "Failed to update content");
-  }
-};
-
-export const updateCourseImage = async (
-  id: number,
-  data: { title?: string; description?: string; imageUrl?: string }
-) => {
-  try {
-    return await prisma.courseImage.update({ where: { id }, data });
-  } catch (error: any) {
-    throw new Error(error.message || "Failed to update course image");
-  }
-};
-
-export const updateCourseVideo = async (
-  id: number,
-  data: { title?: string; description?: string; videoUrl?: string }
-) => {
-  try {
-    return await prisma.courseVideo.update({ where: { id }, data });
-  } catch (error: any) {
-    throw new Error(error.message || "Failed to update course video");
   }
 };
 
