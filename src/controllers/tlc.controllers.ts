@@ -1,16 +1,19 @@
 import { Request, Response } from "express";
 import * as tlcService from "../services/tlc.services";
 
+
 export const createGuidedTlc = async (req: Request, res: Response) => {
   try {
     const userId = Number(req.user?.id);
-    const { goal, tone } = req.body;
-    const result = await tlcService.generateGuidedTlc(userId, goal, tone);
+    const result = await tlcService.generateGuidedTlc(userId);
     res.status(201).json({ success: true, data: result });
   } catch (e: any) {
     res.status(500).json({ success: false, message: e.message });
   }
 };
+
+
+
 
 export const getUserPlans = async (req: Request, res: Response) => {
   try {

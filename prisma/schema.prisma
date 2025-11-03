@@ -106,8 +106,10 @@ model User {
   referralsAsReferrer    Referral[] @relation("ReferrerReferral")
 
   // content/courses
-  contentsUploaded       Content[]  @relation("UploadedContents")
-  ratings          ContentRating[] @relation("UserRatings")
+  contentCoursesUploaded   ContentCourse[]     @relation("UploadedCourses")
+  contentsUploaded         Content[]           @relation("UploadedLessonContents")
+  ratings                  ContentRating[]     @relation("UserRatings")
+
   // tlc
   guidedTLCPlans  GuidedTLCPlan[]
   
@@ -446,58 +448,13 @@ enum ReferralStatus {
   PENDING
 }
 
-model Content {
-  id            Int       @id @default(autoincrement())
-  title         String
-  type          ContentType
-  description   String?
-  category      String?
-  targetAudience TargetAudience
-  content       String?
-  videoUrl      String?
-  uploadedById  Int
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  ratings ContentRating[] @relation("ContentRatings")
-  uploadedBy    User      @relation("UploadedContents", fields: [uploadedById], references: [id])
-}
-
-model ContentRating {
-  id          Int      @id @default(autoincrement())
-  contentId   Int
-  userId      Int
-  rating      Int      @db.SmallInt
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  content Content @relation(fields: [contentId], references: [id], name: "ContentRatings")
-  user    User    @relation(fields: [userId], references: [id], name: "UserRatings")
-
-  @@unique([contentId, userId])
-}
-
-enum ContentType {
-  GUIDE
-  COURSE
-  RESOURCE
-}
-
-enum TargetAudience {
-  GENERAL
-  ADULTS
-  TEENS
-  CHILDREN
-}
 
 
 model GuidedTLCPlan {
   id             Int               @id @default(autoincrement())
   userId         Int
   user           User              @relation(fields: [userId], references: [id])
-  title          String
-  goal           String
-  notes          String?
+  surveyResult   Json
   durationDays   Int
   isCompleted    Boolean           @default(false)
   certificateMsg String? @db.Text
@@ -586,4 +543,105 @@ model CounselorNote {
 
   user         User       @relation("UserNotes", fields: [userId], references: [id])
   counselor    User       @relation("CounselorNotes", fields: [counselorId], references: [id])
+}
+
+
+model School {
+  id        Int       @id @default(autoincrement())
+  name      String
+  courses   Course[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Course {
+  id        Int      @id @default(autoincrement())
+  name      String
+  schoolId  Int
+  school    School   @relation(fields: [schoolId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+
+model ContentCourse {
+  id           Int        @id @default(autoincrement())
+  title        String
+  description  String?
+  uploadedById Int
+  uploadedBy   User        @relation("UploadedCourses", fields: [uploadedById], references: [id])
+  modules      Module[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model Module {
+  id        Int       @id @default(autoincrement())
+  title     String
+  order     Int
+  courseId  Int
+  course    ContentCourse @relation(fields: [courseId], references: [id])
+  lessons   Lesson[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Lesson {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String?
+  duration    String?
+  order       Int
+  moduleId    Int
+  module      Module     @relation(fields: [moduleId], references: [id])
+  contents    Content[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Content {
+  id             Int              @id @default(autoincrement())
+  lessonId       Int
+  lesson         Lesson           @relation(fields: [lessonId], references: [id])
+  title          String
+  type           ContentType
+  description    String?
+  category       String?
+  targetAudience TargetAudience
+  content        String?
+  videoUrls      Json?
+  imageUrls      Json?
+  uploadedById   Int
+  uploadedBy     User             @relation("UploadedLessonContents", fields: [uploadedById], references: [id])
+  ratings        ContentRating[]  @relation("ContentRatings")
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+model ContentRating {
+  id          Int      @id @default(autoincrement())
+  contentId   Int
+  userId      Int
+  rating      Int      @db.SmallInt
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  content     Content  @relation(fields: [contentId], references: [id], name: "ContentRatings")
+  user        User     @relation(fields: [userId], references: [id], name: "UserRatings")
+  @@unique([contentId, userId])
+}
+
+enum ContentType {
+  TEXT
+  IMAGE
+  VIDEO
+  RESOURCE
+}
+
+enum TargetAudience {
+  GENERAL
+  ADULTS
+  TEENS
+  CHILDREN
 }

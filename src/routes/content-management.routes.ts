@@ -1,22 +1,28 @@
+// src/routes/contentCourse.routes.ts
 import { Router } from "express";
-import * as contentManagement from "../controllers/content-management.controllers";
 import { authenticateUser } from "../middlewares/auth.middleware";
+import * as controller from "../controllers/content-management.controllers";
 
 const router = Router();
-
-router.post("/", authenticateUser, contentManagement.createContentController);
-router.get("/", authenticateUser, contentManagement.listContentsController);
-router.put("/:id", authenticateUser, contentManagement.updateContentController);
-router.delete(
-  "/:id",
+router.post("/", authenticateUser, controller.createFullCourseController);
+router.get("/", authenticateUser, controller.listCoursesController);
+router.put("/course/:id", authenticateUser, controller.updateCourseController);
+router.put("/module/:id", authenticateUser, controller.updateModuleController);
+router.put("/lesson/:id", authenticateUser, controller.updateLessonController);
+router.put(
+  "/content/:id",
   authenticateUser,
-  contentManagement.deleteContentController
+  controller.updateContentController
 );
 router.post(
-  "/add-rating",
+  "/rating",
   authenticateUser,
-  contentManagement.addOrUpdateRating as any
+  controller.addOrUpdateRatingController
 );
-router.get("/:id", authenticateUser, contentManagement.viewContentById as any);
-
+router.get(
+  "/ratings/:contentId",
+  authenticateUser,
+  controller.getRatingsByContentController
+);
+router.get("/:id", authenticateUser, controller.getCourseByIdController);
 export default router;

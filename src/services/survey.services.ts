@@ -206,9 +206,30 @@ export const getSurveyHistory = async (userProfileId: number) => {
         };
       }
 
+      const totalScore = res.score ?? 0;
+      let percentage = 0;
+
+      switch (res.surveyForm.code) {
+        case "PHQ-9":
+          percentage = Math.min((totalScore / 27) * 100, 100);
+          break;
+        case "GAD-7":
+          percentage = Math.min((totalScore / 21) * 100, 100);
+          break;
+        case "COMBINED":
+          percentage = Math.min((totalScore / 48) * 100, 100);
+          break;
+        case "MHI-38":
+          percentage = Math.min((totalScore / 228) * 100, 100);
+          break;
+        default:
+          percentage = Math.min((totalScore / 100) * 100, 100);
+      }
+
       acc[key].history.push({
         attemptNumber: res.attemptNumber,
-        score: res.score,
+        score: totalScore,
+        percentage: Number(percentage.toFixed(1)),
         resultCategory: res.resultCategory,
         status: res.status,
         takenAt: res.createdAt,
@@ -222,9 +243,10 @@ export const getSurveyHistory = async (userProfileId: number) => {
       surveys: Object.values(grouped),
     };
   } catch (error: any) {
-    throw new Error(error);
+    throw new Error(error.message || "Failed to fetch survey history");
   }
 };
+
 
 export const getSurveyProgress = async (
   userProfileId: number,

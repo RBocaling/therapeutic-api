@@ -1,123 +1,170 @@
+// src/services/contentCourse.service.ts
 import prisma from "../config/prisma";
 
-export const createContent = async (data: {
+export const createFullCourse = async (data: {
   title: string;
-  type: "GUIDE" | "COURSE" | "RESOURCE";
   description?: string;
-  category?: string;
-  targetAudience: "GENERAL" | "ADULTS" | "TEENS" | "CHILDREN";
-  content?: string;
-  videoUrl?: string;
   uploadedById: number;
+  modules: {
+    title: string;
+    order: number;
+    lessons: {
+      title: string;
+      description?: string;
+      duration?: string;
+      order: number;
+      contents: {
+        title: string;
+        type: "TEXT" | "IMAGE" | "VIDEO" | "RESOURCE";
+        description?: string;
+        category?: string;
+        targetAudience?: "GENERAL" | "ADULTS" | "TEENS" | "CHILDREN";
+        content?: string;
+        videoUrls?: string[];
+        imageUrls?: string[];
+      }[];
+    }[];
+  }[];
 }) => {
- try {
-     const content = await prisma.content.create({
-       data,
-       include: {
-         uploadedBy: {
-           select: { id: true, firstName: true, lastName: true, email: true },
-         },
-       },
-     });
-     return content;
- } catch (error:any) {
-    throw new Error(error)
- }
+  return prisma.$transaction(async (tx) => {
+    const course = await tx.contentCourse.create({
+      data: {
+        title: data.title,
+        description: data.description,
+        uploadedById: data.uploadedById,
+      },
+    });
+    for (const mod of data.modules) {
+      const module = await tx.module.create({
+        data: { title: mod.title, order: mod.order, courseId: course.id },
+      });
+      for (const les of mod.lessons) {
+        const lesson = await tx.lesson.create({
+          data: {
+            title: les.title,
+            description: les.description,
+            duration: les.duration,
+            order: les.order,
+            moduleId: module.id,
+          },
+        });
+        for (const cont of les.contents) {
+          await tx.content.create({
+            data: {
+              lessonId: lesson.id,
+              title: cont.title,
+              type: cont.type,
+              description: cont.description,
+              category: cont.category,
+              targetAudience: cont.targetAudience ?? "GENERAL",
+              content: cont.content,
+              videoUrls: cont.videoUrls ?? [],
+              imageUrls: cont.imageUrls ?? [],
+              uploadedById: data.uploadedById,
+            },
+          });
+        }
+      }
+    }
+    return course;
+  });
 };
 
-export const listContents = async (userId?: number) => {
-  try {
-    const where = userId ? { uploadedById: userId } : {};
-    const contents = await prisma.content.findMany({
-      where,
-      include: {
-        uploadedBy: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            role: true,
-            profilePic: true,
-          },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-    });
-    return contents;
-  } catch (error: any) {
-    throw new Error(error);
-  }
-};
-export const viewContentById = async (id: number) => {
-  try {
-    const content = await prisma.content.findUnique({
-      where: { id },
-      include: {
-        uploadedBy: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            role: true,
-            profilePic: true,
-          },
-        },
-        ratings: {
-          select: {
-            id: true,
-            rating: true,
-            description: true,
-            user: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                profilePic: true,
+export const listCourses = async () => {
+  return prisma.contentCourse.findMany({
+    include: {
+      modules: {
+        include: {
+          lessons: {
+            include: {
+              contents: {
+                include: { ratings: true },
               },
             },
           },
         },
       },
-    });
+    },
+    orderBy: { createdAt: "desc" },
+  });
+};
 
-    if (!content) throw new Error("Content not found");
+export const getCourseById = async (id: number) => {
+  return prisma.contentCourse.findUnique({
+    where: { id },
+    include: {
+      modules: {
+        orderBy: { order: "asc" },
+        include: {
+          lessons: {
+            orderBy: { order: "asc" },
+            include: {
+              contents: {
+                include: {
+                  ratings: {
+                    select: {
+                      id: true,
+                      rating: true,
+                      description: true,
+                      user: {
+                        select: {
+                          id: true,
+                          firstName: true,
+                          lastName: true,
+                          profilePic: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+};
 
-    return content;
-  } catch (error: any) {
-    throw new Error(String(error));
+export const updateCourse = async (
+  id: number,
+  data: { title?: string; description?: string }
+) => {
+  return prisma.contentCourse.update({ where: { id }, data });
+};
+
+export const updateModule = async (
+  id: number,
+  data: { title?: string; order?: number }
+) => {
+  return prisma.module.update({ where: { id }, data });
+};
+
+export const updateLesson = async (
+  id: number,
+  data: {
+    title?: string;
+    description?: string;
+    duration?: string;
+    order?: number;
   }
+) => {
+  return prisma.lesson.update({ where: { id }, data });
 };
 
 export const updateContent = async (
   id: number,
-  data: Partial<{
-    title: string;
-    type: "GUIDE" | "COURSE" | "RESOURCE";
+  data: {
+    title?: string;
     description?: string;
     category?: string;
     targetAudience?: "GENERAL" | "ADULTS" | "TEENS" | "CHILDREN";
     content?: string;
-    videoUrl?: string;
-  }>
+    videoUrls?: string[];
+    imageUrls?: string[];
+  }
 ) => {
-  try {
-    const content = await prisma.content.update({
-      where: { id },
-      data,
-    });
-    return content;
-  } catch (error: any) {
-    throw new Error(error);
-  }
-};
-
-export const deleteContent = async (id: number) => {
-  try {
-    await prisma.content.delete({ where: { id } });
-    return { message: "Content deleted successfully" };
-  } catch (error: any) {
-    throw new Error(error);
-  }
+  return prisma.content.update({ where: { id }, data });
 };
 
 export const addOrUpdateRating = async (
@@ -126,24 +173,33 @@ export const addOrUpdateRating = async (
   rating: number,
   description?: string
 ) => {
-  try {
-    const existing = await prisma.contentRating.findUnique({
-      where: { contentId_userId: { contentId, userId } },
+  const existing = await prisma.contentRating.findUnique({
+    where: { contentId_userId: { contentId, userId } },
+  });
+  if (existing) {
+    return prisma.contentRating.update({
+      where: { id: existing.id },
+      data: { rating, description, updatedAt: new Date() },
     });
-
-    if (existing) {
-      const updated = await prisma.contentRating.update({
-        where: { id: existing.id },
-        data: { rating, description, updatedAt: new Date() },
-      });
-      return updated;
-    }
-
-    const newRating = await prisma.contentRating.create({
-      data: { userId, contentId, rating, description },
-    });
-    return newRating;
-  } catch (error) {
-    throw new Error(`Error in addOrUpdateRating: ${error}`);
   }
+  return prisma.contentRating.create({
+    data: { userId, contentId, rating, description },
+  });
+};
+
+export const getRatingsByContent = async (contentId: number) => {
+  return prisma.contentRating.findMany({
+    where: { contentId },
+    include: {
+      user: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          profilePic: true,
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
 };

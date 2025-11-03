@@ -14,6 +14,7 @@ import contentManagementRoutes from "./routes/content-management.routes";
 import tlcGuided from "./routes/tlc.routes";
 import peerSupportRoutes from "./routes/peerSupport.routes";
 import contactSupportRoutes from "./routes/contactSupport.routes";
+import schoolRoutes from "./routes/school.routes";
 
 const app = express();
 
@@ -49,6 +50,7 @@ app.use("/api/content-management", contentManagementRoutes);
 app.use("/api/tlc-guide", tlcGuided);
 app.use("/api/peer-support", peerSupportRoutes);
 app.use("/api/contact-support", contactSupportRoutes);
+app.use("/api/general", schoolRoutes);
 
 
 export default app;
