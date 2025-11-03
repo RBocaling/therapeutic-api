@@ -575,9 +575,12 @@ model ContentCourse {
   id           Int        @id @default(autoincrement())
   title        String
   description  String? @db.Text
+  type         CourseType
   uploadedById Int
   uploadedBy   User        @relation("UploadedCourses", fields: [uploadedById], references: [id])
   modules      Module[]
+  images       CourseImage[]
+  videos       CourseVideo[]
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 }
@@ -625,6 +628,26 @@ model Content {
   updatedAt      DateTime         @updatedAt
 }
 
+model CourseImage {
+  id          Int       @id @default(autoincrement())
+  courseId    Int
+  title       String
+  description String?
+  imageUrl    String
+  course      ContentCourse @relation(fields: [courseId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model CourseVideo {
+  id          Int       @id @default(autoincrement())
+  courseId    Int
+  title       String
+  description String?
+  videoUrl    String
+  course      ContentCourse @relation(fields: [courseId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
 model ContentRating {
   id          Int      @id @default(autoincrement())
   contentId   Int
@@ -651,6 +674,13 @@ enum TargetAudience {
   TEENS
   CHILDREN
 }
+
+enum CourseType {
+  MODULES
+  IMAGES
+  VIDEOS
+}
+
 
 model SupportTicket {
   id          Int       @id @default(autoincrement())

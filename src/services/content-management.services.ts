@@ -1,11 +1,11 @@
-// src/services/contentCourse.service.ts
 import prisma from "../config/prisma";
 
-export const createFullCourse = async (data: {
+export const createCourse = async (data: {
   title: string;
   description?: string;
+  type: "MODULES" | "IMAGES" | "VIDEOS";
   uploadedById: number;
-  modules: {
+  modules?: {
     title: string;
     order: number;
     lessons: {
@@ -25,81 +25,114 @@ export const createFullCourse = async (data: {
       }[];
     }[];
   }[];
+  images?: { title: string; description?: string; imageUrl: string }[];
+  videos?: { title: string; description?: string; videoUrl: string }[];
 }) => {
   try {
-    return prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx) => {
       const course = await tx.contentCourse.create({
         data: {
           title: data.title,
           description: data.description,
+          type: data.type,
           uploadedById: data.uploadedById,
         },
       });
-      for (const mod of data.modules) {
-        const module = await tx.module.create({
-          data: { title: mod.title, order: mod.order, courseId: course.id },
-        });
-        for (const les of mod.lessons) {
-          const lesson = await tx.lesson.create({
-            data: {
-              title: les.title,
-              description: les.description,
-              duration: les.duration,
-              order: les.order,
-              moduleId: module.id,
-            },
+
+      if (data.type === "MODULES" && data.modules) {
+        for (const mod of data.modules) {
+          const module = await tx.module.create({
+            data: { title: mod.title, order: mod.order, courseId: course.id },
           });
-          for (const cont of les.contents) {
-            await tx.content.create({
+          for (const les of mod.lessons) {
+            const lesson = await tx.lesson.create({
               data: {
-                lessonId: lesson.id,
-                title: cont.title,
-                type: cont.type,
-                description: cont.description,
-                category: cont.category,
-                targetAudience: cont.targetAudience ?? "GENERAL",
-                content: cont.content,
-                videoUrls: cont.videoUrls ?? [],
-                imageUrls: cont.imageUrls ?? [],
-                uploadedById: data.uploadedById,
+                title: les.title,
+                description: les.description,
+                duration: les.duration,
+                order: les.order,
+                moduleId: module.id,
               },
             });
+            for (const cont of les.contents) {
+              await tx.content.create({
+                data: {
+                  lessonId: lesson.id,
+                  title: cont.title,
+                  type: cont.type,
+                  description: cont.description,
+                  category: cont.category,
+                  targetAudience: cont.targetAudience ?? "GENERAL",
+                  content: cont.content,
+                  videoUrls: cont.videoUrls ?? [],
+                  imageUrls: cont.imageUrls ?? [],
+                  uploadedById: data.uploadedById,
+                },
+              });
+            }
           }
         }
       }
+
+      if (data.type === "IMAGES" && data.images) {
+        for (const img of data.images) {
+          await tx.courseImage.create({
+            data: {
+              courseId: course.id,
+              title: img.title,
+              description: img.description,
+              imageUrl: img.imageUrl,
+            },
+          });
+        }
+      }
+
+      if (data.type === "VIDEOS" && data.videos) {
+        for (const vid of data.videos) {
+          await tx.courseVideo.create({
+            data: {
+              courseId: course.id,
+              title: vid.title,
+              description: vid.description,
+              videoUrl: vid.videoUrl,
+            },
+          });
+        }
+      }
+
       return course;
     });
   } catch (error: any) {
-    throw new Error(error);
+    throw new Error(error.message || "Failed to create course");
   }
 };
 
 export const listCourses = async () => {
   try {
-    return prisma.contentCourse.findMany({
+    return await prisma.contentCourse.findMany({
       include: {
         modules: {
           include: {
             lessons: {
               include: {
-                contents: {
-                  include: { ratings: true },
-                },
+                contents: { include: { ratings: true } },
               },
             },
           },
         },
+        images: true,
+        videos: true,
       },
       orderBy: { createdAt: "desc" },
     });
   } catch (error: any) {
-    throw new Error(error);
+    throw new Error(error.message || "Failed to list courses");
   }
 };
 
 export const getCourseById = async (id: number) => {
   try {
-    return prisma.contentCourse.findUnique({
+    return await prisma.contentCourse.findUnique({
       where: { id },
       include: {
         modules: {
@@ -131,10 +164,12 @@ export const getCourseById = async (id: number) => {
             },
           },
         },
+        images: true,
+        videos: true,
       },
     });
   } catch (error: any) {
-    throw new Error(error);
+    throw new Error(error.message || "Failed to fetch course");
   }
 };
 
@@ -142,14 +177,22 @@ export const updateCourse = async (
   id: number,
   data: { title?: string; description?: string }
 ) => {
-  return prisma.contentCourse.update({ where: { id }, data });
+  try {
+    return await prisma.contentCourse.update({ where: { id }, data });
+  } catch (error: any) {
+    throw new Error(error.message || "Failed to update course");
+  }
 };
 
 export const updateModule = async (
   id: number,
   data: { title?: string; order?: number }
 ) => {
-  return prisma.module.update({ where: { id }, data });
+  try {
+    return await prisma.module.update({ where: { id }, data });
+  } catch (error: any) {
+    throw new Error(error.message || "Failed to update module");
+  }
 };
 
 export const updateLesson = async (
@@ -161,7 +204,11 @@ export const updateLesson = async (
     order?: number;
   }
 ) => {
-  return prisma.lesson.update({ where: { id }, data });
+  try {
+    return await prisma.lesson.update({ where: { id }, data });
+  } catch (error: any) {
+    throw new Error(error.message || "Failed to update lesson");
+  }
 };
 
 export const updateContent = async (
@@ -177,9 +224,31 @@ export const updateContent = async (
   }
 ) => {
   try {
-    return prisma.content.update({ where: { id }, data });
+    return await prisma.content.update({ where: { id }, data });
   } catch (error: any) {
-    throw new Error(error);
+    throw new Error(error.message || "Failed to update content");
+  }
+};
+
+export const updateCourseImage = async (
+  id: number,
+  data: { title?: string; description?: string; imageUrl?: string }
+) => {
+  try {
+    return await prisma.courseImage.update({ where: { id }, data });
+  } catch (error: any) {
+    throw new Error(error.message || "Failed to update course image");
+  }
+};
+
+export const updateCourseVideo = async (
+  id: number,
+  data: { title?: string; description?: string; videoUrl?: string }
+) => {
+  try {
+    return await prisma.courseVideo.update({ where: { id }, data });
+  } catch (error: any) {
+    throw new Error(error.message || "Failed to update course video");
   }
 };
 
@@ -194,22 +263,22 @@ export const addOrUpdateRating = async (
       where: { contentId_userId: { contentId, userId } },
     });
     if (existing) {
-      return prisma.contentRating.update({
+      return await prisma.contentRating.update({
         where: { id: existing.id },
         data: { rating, description, updatedAt: new Date() },
       });
     }
-    return prisma.contentRating.create({
+    return await prisma.contentRating.create({
       data: { userId, contentId, rating, description },
     });
   } catch (error: any) {
-    throw new Error(error);
+    throw new Error(error.message || "Failed to add/update rating");
   }
 };
 
 export const getRatingsByContent = async (contentId: number) => {
   try {
-    return prisma.contentRating.findMany({
+    return await prisma.contentRating.findMany({
       where: { contentId },
       include: {
         user: {
@@ -224,6 +293,6 @@ export const getRatingsByContent = async (contentId: number) => {
       orderBy: { createdAt: "desc" },
     });
   } catch (error: any) {
-    throw new Error(error);
+    throw new Error(error.message || "Failed to fetch ratings");
   }
 };

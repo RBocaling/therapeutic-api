@@ -1,28 +1,31 @@
-// src/routes/contentCourse.routes.ts
 import { Router } from "express";
+import {
+  createCourseController,
+  listCoursesController,
+  getCourseByIdController,
+  updateCourseController,
+  updateModuleController,
+  updateLessonController,
+  updateContentController,
+  updateCourseImageController,
+  updateCourseVideoController,
+  addOrUpdateRatingController,
+  getRatingsByContentController,
+} from "../controllers/content-management.controllers";
 import { authenticateUser } from "../middlewares/auth.middleware";
-import * as controller from "../controllers/content-management.controllers";
 
 const router = Router();
-router.post("/", authenticateUser, controller.createFullCourseController);
-router.get("/", authenticateUser, controller.listCoursesController);
-router.put("/course/:id", authenticateUser, controller.updateCourseController);
-router.put("/module/:id", authenticateUser, controller.updateModuleController);
-router.put("/lesson/:id", authenticateUser, controller.updateLessonController);
-router.put(
-  "/content/:id",
-  authenticateUser,
-  controller.updateContentController
-);
-router.post(
-  "/rating",
-  authenticateUser,
-  controller.addOrUpdateRatingController
-);
-router.get(
-  "/ratings/:contentId",
-  authenticateUser,
-  controller.getRatingsByContentController
-);
-router.get("/:id", authenticateUser, controller.getCourseByIdController);
+
+router.post("/", authenticateUser, createCourseController);
+router.get("/", authenticateUser, listCoursesController);
+router.get("/:id", authenticateUser, getCourseByIdController as any);
+router.put("/course/:id", authenticateUser, updateCourseController);
+router.put("/module/:id", authenticateUser, updateModuleController);
+router.put("/lesson/:id", authenticateUser, updateLessonController);
+router.put("/content/:id", authenticateUser, updateContentController);
+router.put("/image/:id", authenticateUser, updateCourseImageController);
+router.put("/video/:id", authenticateUser, updateCourseVideoController);
+router.post("/rating", authenticateUser, addOrUpdateRatingController as any);
+router.get("/ratings/:id", authenticateUser, getRatingsByContentController);
+
 export default router;
