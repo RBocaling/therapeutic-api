@@ -71,7 +71,7 @@ model User {
   suffix              String?
   email               String?               @unique
   password            String?
-  profilePic          String?
+  profilePic          String? @db.Text
   isTakeSurvey        Boolean              @default(false)
   role                Role                 @default(USER)
   isAccountVerified   Boolean              @default(false)
@@ -126,6 +126,12 @@ model User {
   CounselorNotes  CounselorNote[] @relation("CounselorNotes") // ✅ As counselor writing notes
   UserNotes       CounselorNote[] @relation("UserNotes") 
 
+  // Ticketing
+  tickets     SupportTicket[]
+
+  // audit
+  auditLogs   AuditTrail[]
+
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
 }
@@ -144,7 +150,7 @@ model UserProfile {
   guardianContact           String?
   userStatus                UserStatus?
   validId                   String?
-  selfieImage               String?
+  selfieImage               String? @db.Text
   isFirstGenerationStudent   Boolean?       @default(false)
   indigenousGroup            String?
   isSingleParent             Boolean?       @default(false)
@@ -185,7 +191,7 @@ model CounselorProfile {
 model SurveyForm {
   id             Int              @id @default(autoincrement())
   title          String
-  description    String?
+  description    String? @db.Text
   code           String           @unique
   isActive       Boolean          @default(true)
   scoringRules   Json?
@@ -268,7 +274,7 @@ model ChatMessage {
   chatSessionId Int
   senderId     Int?
   content      String @db.Text
-  imageUrl     String?
+  imageUrl     String? @db.Text
   isFromAI     Boolean     @default(false)
   createdAt    DateTime    @default(now())
 
@@ -282,7 +288,7 @@ model Notification {
   recipient      User                @relation("UserNotifications", fields: [recipientId], references: [id])
   type           NotificationType
   title          String
-  message        String
+  message        String? @db.Text
   isRead         Boolean             @default(false)
   createdAt      DateTime            @default(now())
 }
@@ -354,7 +360,7 @@ model PeerMessage {
   peerSupportId  Int
   senderId       Int
   message        String?
-  imageUrl       String?
+  imageUrl       String? @db.Text
   isRead         Boolean     @default(false)
   createdAt      DateTime    @default(now())
 
@@ -370,7 +376,7 @@ model AwarenessCampaign {
   type          CampaignType
   status        CampaignStatus  @default(DRAFT)
   isAnonymous Boolean @default(false)
-  imageUrl      String?
+  imageUrl      String? @db.Text
   startDate     DateTime?
   endDate       DateTime?
   audienceTags  String?
@@ -388,7 +394,7 @@ model AwarenessCampaign {
 model Comment {
   id         Int       @id @default(autoincrement())
   content    String
-  imageUrl   String?
+  imageUrl   String? @db.Text
   userId     Int
   campaignId Int
   user       User           @relation(fields: [userId], references: [id])
@@ -403,8 +409,8 @@ model Feedback {
   context    String?
   rating     Int?
   sentiment  Sentiment?
-  message    String
-  imageUrl   String?
+  message    String? @db.Text
+  imageUrl   String? @db.Text
   user       User              @relation(fields: [userId], references: [id])
   campaign   AwarenessCampaign @relation(fields: [campaignId], references: [id])
   createdAt  DateTime          @default(now())
@@ -418,10 +424,10 @@ model Referral {
   referrerId       Int              
 
   concern          String
-  shortDescription String
+  shortDescription String? @db.Text
   priority         Priority
   recipient        String
-  summaryNotes     String?
+  summaryNotes    String? @db.Text
   status           ReferralStatus   @default(SENT)
   acknowledgeStatus Boolean          @default(false)
 
@@ -482,8 +488,8 @@ model ContactSupport {
   id           Int              @id @default(autoincrement())
   userId       Int
   subject      String
-  message      String
-  imageUrl     String?
+  message      String? @db.Text
+  imageUrl     String? @db.Text
   status       SupportStatus    @default(PENDING)
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
@@ -496,8 +502,8 @@ model SupportResponse {
   id               Int             @id @default(autoincrement())
   contactSupportId Int
   responderId      Int
-  message          String
-  imageUrl         String?
+  message          String? @db.Text
+  imageUrl         String? @db.Text
   createdAt        DateTime        @default(now())
 
   contactSupport   ContactSupport  @relation(fields: [contactSupportId], references: [id])
@@ -536,7 +542,7 @@ model CounselorNote {
   noteType     NoteType
   mood         MoodType
   riskLevel    RiskLevel
-  content      String     @db.Text
+  content      String? @db.Text
   tags         String?    // Comma-separated tags
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
@@ -568,7 +574,7 @@ model Course {
 model ContentCourse {
   id           Int        @id @default(autoincrement())
   title        String
-  description  String?
+  description  String? @db.Text
   uploadedById Int
   uploadedBy   User        @relation("UploadedCourses", fields: [uploadedById], references: [id])
   modules      Module[]
@@ -624,7 +630,7 @@ model ContentRating {
   contentId   Int
   userId      Int
   rating      Int      @db.SmallInt
-  description String?
+  description String? @db.Text
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   content     Content  @relation(fields: [contentId], references: [id], name: "ContentRatings")
@@ -644,4 +650,31 @@ enum TargetAudience {
   ADULTS
   TEENS
   CHILDREN
+}
+
+model SupportTicket {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  user        User      @relation(fields: [userId], references: [id])
+  description String? @db.Text
+  imageUrl    String? @db.Text
+  status      TicketStatus @default(OPEN)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+model AuditTrail {
+  id          Int       @id @default(autoincrement())
+  userId      Int?
+  user        User?     @relation(fields: [userId], references: [id])
+  type        String
+  description String? @db.Text
+  createdAt   DateTime  @default(now())
 }

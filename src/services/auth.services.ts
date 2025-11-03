@@ -350,7 +350,7 @@ export const forgotPassword = async (email: string) => {
      <p>Expires in 10 minutes.</p>`
     );
 
-    return { message: "OTP sent to your email." };
+    return user;
   } catch (error: any) {
     throw new Error(error);
   }

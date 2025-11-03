@@ -158,7 +158,7 @@ export const getAnalyticsController = async (req: Request, res: Response) => {
     const counselorId =
       req.user?.role === "COUNSELOR" ? req.user.id : undefined;
     const data = await surveyService.getAnalytics(counselorId);
-    res.status(200).json({ success: true, data });
+    res.status(200).json(data);
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }

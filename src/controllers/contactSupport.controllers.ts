@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import * as supportService from "../services/contactSupport.services";
+import * as auditService from "../services/audit.services";
 
 export const createSupportTicket = async (req: Request, res: Response) => {
   try {
@@ -13,6 +14,11 @@ export const createSupportTicket = async (req: Request, res: Response) => {
       imageUrl,
     });
 
+    await auditService.createAudit({
+      description: "Successfully User Ticket Created",
+      type: "SUBMIT_TICKET",
+      userId: req?.user?.id,
+    });
     res.status(201).json({ success: true, data });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
@@ -30,7 +36,11 @@ export const addSupportResponse = async (req: Request, res: Response) => {
       message,
       imageUrl,
     });
-
+    await auditService.createAudit({
+      description: "Support Response",
+      type: "SUPPORT_RESPONSE",
+      userId: responderId,
+    });
     res.status(201).json({ success: true, data });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });

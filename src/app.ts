@@ -15,6 +15,8 @@ import tlcGuided from "./routes/tlc.routes";
 import peerSupportRoutes from "./routes/peerSupport.routes";
 import contactSupportRoutes from "./routes/contactSupport.routes";
 import schoolRoutes from "./routes/school.routes";
+import ticketRoutes from "./routes/ticket.routes";
+import auditRoutes from "./routes/audit.routes";
 
 const app = express();
 
@@ -51,6 +53,8 @@ app.use("/api/tlc-guide", tlcGuided);
 app.use("/api/peer-support", peerSupportRoutes);
 app.use("/api/contact-support", contactSupportRoutes);
 app.use("/api/general", schoolRoutes);
+app.use("/api/ticket", ticketRoutes);
+app.use("/api/audit-trail", auditRoutes);
 
 
 export default app;

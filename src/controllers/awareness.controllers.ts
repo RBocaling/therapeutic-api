@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import * as campaignService from "../services/awareness.services";
+import * as auditService from "../services/audit.services";
 
 export const createCampaign = async (req: Request, res: Response) => {
   try {
@@ -33,6 +34,11 @@ export const createCampaign = async (req: Request, res: Response) => {
       createdById,
     });
 
+    await auditService.createAudit({
+      description: "Successfully Campaign Posted",
+      type: "CAMPAIGN_POST",
+      userId: req?.user?.id,
+    });
     res.status(201).json({ success: true, data });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
@@ -75,7 +81,6 @@ export const updateCampaignPostApprove = async (
   }
 };
 
-
 export const listCampaigns = async (_req: Request, res: Response) => {
   try {
     const campaigns = await campaignService.listCampaigns();
@@ -107,6 +112,11 @@ export const addComment = async (req: Request, res: Response) => {
       content: req.body.content,
       imageUrl: req.body.imageUrl,
     };
+    await auditService.createAudit({
+      description: ` Campaign Post Comment`,
+      type: "POST_COMMENT",
+      userId: req?.user?.id,
+    });
     const data = await campaignService.addComment(payload);
     res.status(201).json({ success: true, data });
   } catch (error: any) {
@@ -126,6 +136,11 @@ export const submitFeedback = async (req: Request, res: Response) => {
       imageUrl: req.body.imageUrl,
     };
     const data = await campaignService.submitFeedback(payload);
+    await auditService.createAudit({
+      description: "Successfully Campaign Rating",
+      type: "CAMPAIGN_RATE",
+      userId: req?.user?.id,
+    });
     res.status(201).json({ success: true, data });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
