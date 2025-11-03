@@ -11,6 +11,11 @@ router.get(
   authenticateUser,
   campaignController.counselorListCampaigns
 );
+router.get(
+  "/pending",
+  authenticateUser,
+  campaignController.pendingListCampaigns
+);
 router.put(
   "/status/:id",
   authenticateUser,

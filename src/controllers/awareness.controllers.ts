@@ -89,6 +89,16 @@ export const listCampaigns = async (_req: Request, res: Response) => {
     res.status(500).json(error.message);
   }
 };
+export const pendingListCampaigns = async (req: Request, res: Response) => {
+  try {
+    const campaigns = await campaignService.MyPendingPendingCampaigns(
+      Number(req?.user?.id)
+    );
+    res.json(campaigns);
+  } catch (error: any) {
+    res.status(500).json(error.message);
+  }
+};
 export const counselorListCampaigns = async (_req: Request, res: Response) => {
   try {
     const campaigns = await campaignService.counselorlistCampaigns();
