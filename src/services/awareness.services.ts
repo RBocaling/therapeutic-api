@@ -66,7 +66,8 @@ export const updateCampaignIsPostApproved = async (
 
 export const listCampaigns = async () => {
   try {
-    return await prisma.awarenessCampaign.findMany({
+    const response = await prisma.awarenessCampaign.findMany({
+      where: { isPostApproved: true },
       include: {
         createdBy: {
           select: {
@@ -110,6 +111,10 @@ export const listCampaigns = async () => {
       },
       orderBy: { createdAt: "desc" },
     });
+    return response?.map((item: any) => ({
+      ...item,
+      createdBy: item?.isAnonymous ? "Anonymous" : item?.createdBy,
+    }));
   } catch (error) {
     throw new Error(`Failed to fetch campaigns: ${error}`);
   }
