@@ -537,7 +537,6 @@ model Course {
   updatedAt DateTime @updatedAt
 }
 
-
 model ContentCourse {
   id           Int        @id @default(autoincrement())
   title        String
@@ -584,7 +583,6 @@ model Content {
   type           ContentType
   description    String?
   category       String?
-  targetAudience TargetAudience
   content        String?
   videoUrls      Json?
   imageUrls      Json?
@@ -639,12 +637,6 @@ enum ContentType {
   RESOURCE
 }
 
-enum TargetAudience {
-  GENERAL
-  ADULTS
-  TEENS
-  CHILDREN
-}
 
 
 

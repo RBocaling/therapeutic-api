@@ -18,7 +18,6 @@ export const createCourse = async (data: {
         type: "TEXT" | "IMAGE" | "VIDEO" | "RESOURCE";
         description?: string;
         category?: string;
-        targetAudience?: "GENERAL" | "ADULTS" | "TEENS" | "CHILDREN";
         content?: string;
         videoUrls?: string[];
         imageUrls?: string[];
@@ -26,7 +25,7 @@ export const createCourse = async (data: {
     }[];
   }[];
   images?: string[];
-  videos?: { title: string; description?: string; videoUrl: string }[];
+  videoUrl?: string;
 }) => {
   try {
     return await prisma.$transaction(async (tx) => {
@@ -62,7 +61,6 @@ export const createCourse = async (data: {
                   type: cont.type,
                   description: cont.description,
                   category: cont.category,
-                  targetAudience: cont.targetAudience ?? "GENERAL",
                   content: cont.content,
                   videoUrls: cont.videoUrls ?? [],
                   imageUrls: cont.imageUrls ?? [],
@@ -85,17 +83,15 @@ export const createCourse = async (data: {
         }
       }
 
-      if (data.type === "VIDEOS" && data.videos) {
-        for (const vid of data.videos) {
-          await tx.courseVideo.create({
-            data: {
-              courseId: course.id,
-              title: vid.title,
-              description: vid.description,
-              videoUrl: vid.videoUrl,
-            },
-          });
-        }
+      if (data.type === "VIDEOS" && data.videoUrl) {
+        await tx.courseVideo.create({
+          data: {
+            courseId: course.id,
+            title: data.title,
+            description: data.description,
+            videoUrl: data.videoUrl,
+          },
+        });
       }
 
       return course;

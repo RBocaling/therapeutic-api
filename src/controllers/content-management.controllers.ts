@@ -11,7 +11,7 @@ export const createCourseController = async (req: Request, res: Response) => {
       uploadedById,
       modules: req.body.modules,
       images: req.body.images,
-      videos: req.body.videos,
+      videoUrl: req.body.videoUrl,
     };
     const course = await courseService.createCourse(data);
     res.status(201).json({ success: true, data: course });
@@ -23,7 +23,7 @@ export const createCourseController = async (req: Request, res: Response) => {
 export const listCoursesController = async (_req: Request, res: Response) => {
   try {
     const data = await courseService.listCourses();
-    res.json(data);
+    res.json({ success: true, data });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -37,7 +37,7 @@ export const getCourseByIdController = async (req: Request, res: Response) => {
       return res
         .status(404)
         .json({ success: false, message: "Course not found" });
-    res.json(data);
+    res.json({ success: true, data });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
