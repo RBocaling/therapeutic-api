@@ -583,7 +583,7 @@ model Content {
   type           ContentType
   description    String? @db.Text
   category       String?
-  content        String?
+  content        String? @db.Text
   videoUrls      Json?
   imageUrls      Json?
   uploadedById   Int
