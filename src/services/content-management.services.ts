@@ -3,7 +3,7 @@ import prisma from "../config/prisma";
 export const createCourse = async (data: {
   title: string;
   description?: string;
-  type: "MODULES" | "IMAGES" | "VIDEOS";
+  type: "MODULES" | "IMAGES" | "VIDEOS" | "AUDIO";
   uploadedById: number;
   modules?: {
     title: string;
@@ -26,6 +26,7 @@ export const createCourse = async (data: {
   }[];
   images?: string[];
   videoUrl?: string;
+  audioUrl?: string;
 }) => {
   try {
     return await prisma.$transaction(async (tx) => {
@@ -93,6 +94,16 @@ export const createCourse = async (data: {
           },
         });
       }
+      if (data.type === "AUDIO" && data.audioUrl) {
+        await tx.courseAudio.create({
+          data: {
+            courseId: course.id,
+            title: data.title,
+            description: data.description,
+            audioUrl: data.audioUrl,
+          },
+        });
+      }
 
       return course;
     });
@@ -104,6 +115,7 @@ export const createCourse = async (data: {
 export const listCourses = async () => {
   try {
     return await prisma.contentCourse.findMany({
+      where: { isDeleted: false },
       include: {
         modules: {
           include: {
@@ -116,6 +128,7 @@ export const listCourses = async () => {
         },
         images: true,
         videos: true,
+        audio: true,
       },
       orderBy: { createdAt: "desc" },
     });
@@ -127,7 +140,7 @@ export const listCourses = async () => {
 export const getCourseById = async (id: number) => {
   try {
     return await prisma.contentCourse.findUnique({
-      where: { id },
+      where: { id, isDeleted: false },
       include: {
         modules: {
           orderBy: { order: "asc" },
@@ -160,6 +173,7 @@ export const getCourseById = async (id: number) => {
         },
         images: true,
         videos: true,
+        audio: true,
       },
     });
   } catch (error: any) {
@@ -220,5 +234,159 @@ export const getRatingsByContent = async (contentId: number) => {
     });
   } catch (error: any) {
     throw new Error(error.message || "Failed to fetch ratings");
+  }
+};
+
+export const updateCourseWithStructure = async (
+  id: number,
+  data: {
+    title: string;
+    description?: string;
+    type: "MODULES" | "IMAGES" | "VIDEOS" | "AUDIO";
+    modules?: {
+      title: string;
+      order: number;
+      lessons: {
+        title: string;
+        description?: string;
+        duration?: string;
+        order: number;
+        contents: {
+          title: string;
+          type: "TEXT" | "IMAGE" | "VIDEO" | "RESOURCE";
+          description?: string;
+          category?: string;
+          content?: string;
+          videoUrls?: string[];
+          imageUrls?: string[];
+        }[];
+      }[];
+    }[];
+    images?: string[];
+    videoUrl?: string;
+    audioUrl?: string;
+  }
+) => {
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const course = await tx.contentCourse.update({
+        where: { id },
+        data: {
+          title: data.title,
+          description: data.description,
+          type: data.type,
+        },
+      });
+
+      // DELETE CONTENT first (because it depends on lessons)
+      const lessons = await tx.lesson.findMany({
+        where: { module: { courseId: id } },
+      });
+      const lessonIds = lessons.map((l) => l.id);
+
+      if (lessonIds.length > 0) {
+        await tx.content.deleteMany({
+          where: { lessonId: { in: lessonIds } },
+        });
+      }
+
+      // DELETE LESSONS and MODULES
+      await tx.lesson.deleteMany({ where: { module: { courseId: id } } });
+      await tx.module.deleteMany({ where: { courseId: id } });
+
+      // DELETE IMAGES, VIDEOS, AUDIO (not dependent on modules)
+      await tx.courseImage.deleteMany({ where: { courseId: id } });
+      await tx.courseVideo.deleteMany({ where: { courseId: id } });
+      await tx.courseAudio.deleteMany({ where: { courseId: id } });
+
+      // RECREATE STRUCTURE
+      if (data.type === "MODULES" && data.modules) {
+        for (const mod of data.modules) {
+          const module = await tx.module.create({
+            data: { title: mod.title, order: mod.order, courseId: id },
+          });
+
+          for (const les of mod.lessons) {
+            const lesson = await tx.lesson.create({
+              data: {
+                title: les.title,
+                description: les.description,
+                duration: les.duration,
+                order: les.order,
+                moduleId: module.id,
+              },
+            });
+
+            for (const cont of les.contents) {
+              await tx.content.create({
+                data: {
+                  lessonId: lesson.id,
+                  title: cont.title,
+                  type: cont.type,
+                  description: cont.description,
+                  category: cont.category,
+                  content: cont.content,
+                  videoUrls: cont.videoUrls ?? [],
+                  imageUrls: cont.imageUrls ?? [],
+                  uploadedById: course.uploadedById,
+                },
+              });
+            }
+          }
+        }
+      }
+
+      if (data.type === "IMAGES" && data.images) {
+        for (const img of data.images) {
+          await tx.courseImage.create({
+            data: { courseId: id, imageUrl: img },
+          });
+        }
+      }
+
+      if (data.type === "VIDEOS" && data.videoUrl) {
+        await tx.courseVideo.create({
+          data: {
+            courseId: id,
+            title: data.title,
+            description: data.description,
+            videoUrl: data.videoUrl,
+          },
+        });
+      }
+
+      if (data.type === "AUDIO" && data.audioUrl) {
+        await tx.courseAudio.create({
+          data: {
+            courseId: id,
+            title: data.title,
+            description: data.description,
+            audioUrl: data.audioUrl,
+          },
+        });
+      }
+
+      return course;
+    });
+  } catch (error: any) {
+    throw new Error(error.message || "Failed to update course");
+  }
+};
+
+export const deleteCourse = async (id?: number) => {
+  try {
+    const campaign = await prisma.contentCourse.findUnique({
+      where: { id },
+    });
+    if (!campaign) throw new Error("Campaign not found");
+
+    return await prisma.contentCourse.update({
+      where: { id },
+      data: {
+        isDeleted: true,
+      },
+    });
+  } catch (error) {
+    throw new Error(`Failed to fetch feedbacks: ${error}`);
   }
 };

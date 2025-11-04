@@ -15,6 +15,10 @@ export const createPeerSupport = async (req: Request, res: Response) => {
       message: req.body.message,
       imageUrl: req.body.imageUrl,
       isAnonymous: req.body.isAnonymous,
+      moderator:
+        req?.user?.role === "MODERATOR"
+          ? `${req?.user?.firstName} ${req?.user?.lastName}`
+          : null,
     });
 
     res.status(201).json({ success: true, data });

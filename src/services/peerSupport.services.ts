@@ -8,6 +8,7 @@ export const createPeerSupport = async (data: {
   message?: string;
   imageUrl?: string;
   isAnonymous?: boolean;
+  moderator?: string | null;
 }) => {
   try {
     const peerSupport = await prisma.peerSupport.create({
@@ -19,6 +20,7 @@ export const createPeerSupport = async (data: {
         message: data.message,
         imageUrl: data.imageUrl,
         isAnonymous: data.isAnonymous ?? false,
+        moderator: data?.moderator,
       },
     });
     return peerSupport;

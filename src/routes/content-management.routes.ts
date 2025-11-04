@@ -22,5 +22,11 @@ router.get(
   authenticateUser,
   courseController.getRatingsByContentController
 );
+router.put("/delete/:id", authenticateUser, courseController.deleteContentPost);
+router.put(
+  "/update/:id",
+  authenticateUser,
+  courseController.updateCourseWithStructureController
+);
 
 export default router;

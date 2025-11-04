@@ -347,6 +347,7 @@ model AwarenessCampaign {
   isAnonymous Boolean @default(false)
   imageUrl      String? @db.Text
   startDate     DateTime?
+  isDeleted Boolean? @default(false)
   endDate       DateTime?
   audienceTags  String?
   isPostApproved Boolean @default(false)
@@ -543,10 +544,12 @@ model ContentCourse {
   description  String? @db.Text
   type         CourseType
   uploadedById Int
+  isDeleted Boolean @default(false)
   uploadedBy   User        @relation("UploadedCourses", fields: [uploadedById], references: [id])
   modules      Module[]
   images       CourseImage[]
   videos       CourseVideo[]
+  audio       CourseAudio[]
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 }
@@ -610,6 +613,15 @@ model CourseVideo {
   course    ContentCourse @relation(fields: [courseId], references: [id])
   createdAt DateTime @default(now())
 }
+model CourseAudio {
+  id        Int       @id @default(autoincrement())
+  courseId  Int
+  title     String
+  description String? @db.Text
+  audioUrl  String? @db.Text
+  course    ContentCourse @relation(fields: [courseId], references: [id])
+  createdAt DateTime @default(now())
+}
 
 model ContentRating {
   id          Int      @id @default(autoincrement())
@@ -628,6 +640,7 @@ enum CourseType {
   MODULES
   IMAGES
   VIDEOS
+  AUDIO
 }
 
 enum ContentType {
@@ -678,6 +691,7 @@ model PeerSupport {
   priority    Priority         @default(MEDIUM)
   message     String?
   imageUrl    String?
+  moderator    String?
   isAnonymous Boolean          @default(false)
   status      PeerStatus       @default(OPEN)
   createdAt   DateTime         @default(now())

@@ -17,6 +17,7 @@ import contactSupportRoutes from "./routes/contactSupport.routes";
 import schoolRoutes from "./routes/school.routes";
 import ticketRoutes from "./routes/ticket.routes";
 import auditRoutes from "./routes/audit.routes";
+import reportRoutes from "./routes/report.routes";
 
 const app = express();
 
@@ -55,6 +56,7 @@ app.use("/api/contact-support", contactSupportRoutes);
 app.use("/api/general", schoolRoutes);
 app.use("/api/ticket", ticketRoutes);
 app.use("/api/audit-trail", auditRoutes);
+app.use("/api/reports", reportRoutes);
 
 
 export default app;

@@ -40,6 +40,11 @@ router.get(
 );
 router.put("/:id", authenticateUser, campaignController.updateCampaign);
 router.put(
+  "/delete/:id",
+  authenticateUser,
+  campaignController.deleteContentPost
+);
+router.put(
   "/approve/:id",
   authenticateUser,
   campaignController.updateCampaignPostApprove

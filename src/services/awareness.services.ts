@@ -67,7 +67,7 @@ export const updateCampaignIsPostApproved = async (
 export const listCampaigns = async () => {
   try {
     const response = await prisma.awarenessCampaign.findMany({
-      where: { isPostApproved: true },
+      where: { isPostApproved: true, isDeleted: false },
       include: {
         createdBy: {
           select: {
@@ -122,6 +122,7 @@ export const listCampaigns = async () => {
 export const moderatorlistCampaigns = async () => {
   try {
     const response = await prisma.awarenessCampaign.findMany({
+      where: { isDeleted: false },
       include: {
         createdBy: {
           select: {
@@ -166,7 +167,11 @@ export const moderatorlistCampaigns = async () => {
       orderBy: { createdAt: "desc" },
     });
     return response
-      ?.filter((item: any) => item?.createdBy?.role === "MODERATOR")
+      ?.filter(
+        (item: any) =>
+          item?.createdBy?.role === "MODERATOR" ||
+          item?.createdBy?.role === "COUNSELOR"
+      )
       ?.map((item: any) => ({
         ...item,
         createdBy: item?.isAnonymous ? "Anonymous" : item?.createdBy,
@@ -178,7 +183,7 @@ export const moderatorlistCampaigns = async () => {
 export const MyPendingPendingCampaigns = async (id: number) => {
   try {
     const response = await prisma.awarenessCampaign.findMany({
-      where: { isPostApproved: false, createdById: id },
+      where: { isPostApproved: false, createdById: id, isDeleted: false },
       include: {
         createdBy: {
           select: {
@@ -234,7 +239,7 @@ export const MyPendingPendingCampaigns = async (id: number) => {
 export const counselorlistCampaigns = async () => {
   try {
     const response = await prisma.awarenessCampaign.findMany({
-      where: { isPostApproved: false },
+      where: { isPostApproved: false, isDeleted: false },
       include: {
         createdBy: {
           select: {
@@ -290,7 +295,7 @@ export const counselorlistCampaigns = async () => {
 export const getCampaignById = async (id: number) => {
   try {
     return await prisma.awarenessCampaign.findUnique({
-      where: { id },
+      where: { id, isDeleted: false },
       include: {
         createdBy: {
           select: {
@@ -474,5 +479,23 @@ export const updateCampaign = async (
     });
   } catch (error) {
     throw new Error(`Failed to update campaign: ${error}`);
+  }
+};
+
+export const deleteContentPost = async (id?: number) => {
+  try {
+    const campaign = await prisma.awarenessCampaign.findUnique({
+      where: { id },
+    });
+    if (!campaign) throw new Error("Campaign not found");
+
+    return await prisma.awarenessCampaign.update({
+      where: { id },
+      data: {
+        isDeleted: true,
+      },
+    });
+  } catch (error) {
+    throw new Error(`Failed to fetch feedbacks: ${error}`);
   }
 };
