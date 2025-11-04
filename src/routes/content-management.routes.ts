@@ -7,6 +7,11 @@ const router = Router();
 router.post("/", authenticateUser, courseController.createCourseController);
 router.get("/", authenticateUser, courseController.listCoursesController);
 router.get(
+  "/my-content",
+  authenticateUser,
+  courseController.mylistCoursesController
+);
+router.get(
   "/:id",
   authenticateUser,
   courseController.getCourseByIdController as any

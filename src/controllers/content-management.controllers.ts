@@ -12,6 +12,7 @@ export const createCourseController = async (req: Request, res: Response) => {
       modules: req.body.modules,
       images: req.body.images,
       videoUrl: req.body.videoUrl,
+      audioUrl: req.body.audioUrl,
     };
     const course = await courseService.createCourse(data);
     res.status(201).json({ success: true, data: course });
@@ -23,6 +24,14 @@ export const createCourseController = async (req: Request, res: Response) => {
 export const listCoursesController = async (_req: Request, res: Response) => {
   try {
     const data = await courseService.listCourses();
+    res.json({ success: true, data });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+export const mylistCoursesController = async (req: Request, res: Response) => {
+  try {
+    const data = await courseService.getMylistCourses(Number(req?.user?.id));
     res.json({ success: true, data });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });

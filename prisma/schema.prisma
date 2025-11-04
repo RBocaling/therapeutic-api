@@ -589,6 +589,7 @@ model Content {
   content        String? @db.Text
   videoUrls      Json?
   imageUrls      Json?
+  audioUrls      Json?
   uploadedById   Int
   uploadedBy     User             @relation("UploadedLessonContents", fields: [uploadedById], references: [id])
   ratings        ContentRating[]  @relation("ContentRatings")

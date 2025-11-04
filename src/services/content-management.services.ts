@@ -1,5 +1,6 @@
 import prisma from "../config/prisma";
 
+
 export const createCourse = async (data: {
   title: string;
   description?: string;
@@ -21,6 +22,7 @@ export const createCourse = async (data: {
         content?: string;
         videoUrls?: string[];
         imageUrls?: string[];
+        audioUrls?: string[];
       }[];
     }[];
   }[];
@@ -29,8 +31,8 @@ export const createCourse = async (data: {
   audioUrl?: string;
 }) => {
   try {
-    return await prisma.$transaction(async (tx) => {
-      const course = await tx.contentCourse.create({
+    const course = await prisma.$transaction(async (tx) => {
+      const newCourse = await tx.contentCourse.create({
         data: {
           title: data.title,
           description: data.description,
@@ -42,18 +44,24 @@ export const createCourse = async (data: {
       if (data.type === "MODULES" && data.modules) {
         for (const mod of data.modules) {
           const module = await tx.module.create({
-            data: { title: mod.title, order: mod.order, courseId: course.id },
+            data: {
+              courseId: newCourse.id,
+              title: mod.title,
+              order: mod.order,
+            },
           });
+
           for (const les of mod.lessons) {
             const lesson = await tx.lesson.create({
               data: {
+                moduleId: module.id,
                 title: les.title,
                 description: les.description,
                 duration: les.duration,
                 order: les.order,
-                moduleId: module.id,
               },
             });
+
             for (const cont of les.contents) {
               await tx.content.create({
                 data: {
@@ -64,6 +72,7 @@ export const createCourse = async (data: {
                   category: cont.category,
                   content: cont.content,
                   videoUrls: cont.videoUrls ?? [],
+                  audioUrls: cont.audioUrls ?? [],
                   imageUrls: cont.imageUrls ?? [],
                   uploadedById: data.uploadedById,
                 },
@@ -76,10 +85,7 @@ export const createCourse = async (data: {
       if (data.type === "IMAGES" && data.images) {
         for (const imageUrl of data.images) {
           await tx.courseImage.create({
-            data: {
-              courseId: course.id,
-              imageUrl,
-            },
+            data: { courseId: newCourse.id, imageUrl },
           });
         }
       }
@@ -87,17 +93,18 @@ export const createCourse = async (data: {
       if (data.type === "VIDEOS" && data.videoUrl) {
         await tx.courseVideo.create({
           data: {
-            courseId: course.id,
+            courseId: newCourse.id,
             title: data.title,
             description: data.description,
             videoUrl: data.videoUrl,
           },
         });
       }
+
       if (data.type === "AUDIO" && data.audioUrl) {
         await tx.courseAudio.create({
           data: {
-            courseId: course.id,
+            courseId: newCourse.id,
             title: data.title,
             description: data.description,
             audioUrl: data.audioUrl,
@@ -105,8 +112,27 @@ export const createCourse = async (data: {
         });
       }
 
-      return course;
+      // ✅ MUST RETURN COURSE WITH RELATIONS
+      return tx.contentCourse.findUnique({
+        where: { id: newCourse.id },
+        include: {
+          modules: {
+            include: {
+              lessons: {
+                include: {
+                  contents: { include: { ratings: true } },
+                },
+              },
+            },
+          },
+          images: true,
+          videos: true,
+          audios: true, // ✅ this returns audio
+        },
+      });
     });
+
+    return course;
   } catch (error: any) {
     throw new Error(error.message || "Failed to create course");
   }
@@ -116,6 +142,31 @@ export const listCourses = async () => {
   try {
     return await prisma.contentCourse.findMany({
       where: { isDeleted: false },
+      include: {
+        modules: {
+          include: {
+            lessons: {
+              include: {
+                contents: { include: { ratings: true } },
+              },
+            },
+          },
+        },
+        images: true,
+        videos: true,
+        audios: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  } catch (error: any) {
+    throw new Error(error.message || "Failed to list courses");
+  }
+};
+
+export const getMylistCourses = async (id: number) => {
+  try {
+    return await prisma.contentCourse.findMany({
+      where: { isDeleted: false, uploadedById: id },
       include: {
         modules: {
           include: {
@@ -259,6 +310,7 @@ export const updateCourseWithStructure = async (
           content?: string;
           videoUrls?: string[];
           imageUrls?: string[];
+          audioUrls?: string[];
         }[];
       }[];
     }[];
@@ -328,6 +380,7 @@ export const updateCourseWithStructure = async (
                   content: cont.content,
                   videoUrls: cont.videoUrls ?? [],
                   imageUrls: cont.imageUrls ?? [],
+                  audioUrls: cont.audioUrls ?? [],
                   uploadedById: course.uploadedById,
                 },
               });
