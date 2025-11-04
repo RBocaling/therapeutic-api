@@ -549,7 +549,7 @@ model ContentCourse {
   modules      Module[]
   images       CourseImage[]
   videos       CourseVideo[]
-  audio       CourseAudio[]
+  audios      CourseAudio[]
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 }

@@ -89,6 +89,14 @@ export const listCampaigns = async (_req: Request, res: Response) => {
     res.status(500).json(error.message);
   }
 };
+export const getMyPost = async (req: Request, res: Response) => {
+  try {
+    const campaigns = await campaignService.getMyPost(Number(req?.user?.id));
+    res.json(campaigns);
+  } catch (error: any) {
+    res.status(500).json(error.message);
+  }
+};
 export const moderatorCampaigns = async (_req: Request, res: Response) => {
   try {
     const campaigns = await campaignService.moderatorlistCampaigns();

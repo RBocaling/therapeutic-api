@@ -119,6 +119,61 @@ export const listCampaigns = async () => {
     throw new Error(`Failed to fetch campaigns: ${error}`);
   }
 };
+export const getMyPost = async (id: number) => {
+  try {
+    const response = await prisma.awarenessCampaign.findMany({
+      where: { isDeleted: false, createdById: id },
+      include: {
+        createdBy: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            profilePic: true,
+            role: true,
+          },
+        },
+        comments: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                middleName: true,
+                suffix: true,
+                email: true,
+                profilePic: true,
+              },
+            },
+          },
+        },
+        feedbacks: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                middleName: true,
+                suffix: true,
+                email: true,
+                profilePic: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    return response?.map((item: any) => ({
+      ...item,
+      createdBy: item?.isAnonymous ? "Anonymous" : item?.createdBy,
+    }));
+  } catch (error) {
+    throw new Error(`Failed to fetch campaigns: ${error}`);
+  }
+};
 export const moderatorlistCampaigns = async () => {
   try {
     const response = await prisma.awarenessCampaign.findMany({
@@ -180,6 +235,7 @@ export const moderatorlistCampaigns = async () => {
     throw new Error(`Failed to fetch campaigns: ${error}`);
   }
 };
+
 export const MyPendingPendingCampaigns = async (id: number) => {
   try {
     const response = await prisma.awarenessCampaign.findMany({

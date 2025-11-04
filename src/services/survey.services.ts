@@ -8,6 +8,7 @@ import {
 } from "../utils/compute.analytics";
 import { computeProgress } from "../utils/computeProgress";
 import { computeSurveyScore } from "../utils/surveyScoring";
+import { generateGuidedTlc } from "./tlc.services";
 
 export const seedSurveys = async (surveys: any[]) => {
   try {
@@ -117,12 +118,17 @@ export const submitSurveyResponse = async (
       },
     });
 
+    if (!userResponse) {
+      throw new Error("Failed");
+    }
+
+    const generateExerciseawait = await generateGuidedTlc(userId);
     await prisma.user.update({
       where: { id: userId },
       data: { isTakeSurvey: true },
     });
 
-    return userResponse;
+    return { ...userResponse, generateExercise: generateExerciseawait };
   } catch (error: any) {
     throw new Error(error);
   }
