@@ -128,7 +128,7 @@ export const listCourses = async () => {
         },
         images: true,
         videos: true,
-        audio: true,
+        audios: true,
       },
       orderBy: { createdAt: "desc" },
     });
@@ -173,7 +173,7 @@ export const getCourseById = async (id: number) => {
         },
         images: true,
         videos: true,
-        audio: true,
+        audios: true,
       },
     });
   } catch (error: any) {
