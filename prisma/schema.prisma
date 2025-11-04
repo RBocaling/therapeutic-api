@@ -429,9 +429,7 @@ model GuidedTLCPlan {
   id             Int               @id @default(autoincrement())
   userId         Int
   user           User              @relation(fields: [userId], references: [id])
-  title          String
-  goal           String
-  notes          String?
+  surveyResult   Json
   durationDays   Int
   isCompleted    Boolean           @default(false)
   certificateMsg String? @db.Text
