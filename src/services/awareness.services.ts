@@ -119,6 +119,62 @@ export const listCampaigns = async () => {
     throw new Error(`Failed to fetch campaigns: ${error}`);
   }
 };
+export const moderatorlistCampaigns = async () => {
+  try {
+    const response = await prisma.awarenessCampaign.findMany({
+      include: {
+        createdBy: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            profilePic: true,
+            role: true,
+          },
+        },
+        comments: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                middleName: true,
+                suffix: true,
+                email: true,
+                profilePic: true,
+              },
+            },
+          },
+        },
+        feedbacks: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                middleName: true,
+                suffix: true,
+                email: true,
+                profilePic: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    return response
+      ?.filter((item: any) => item?.createdBy?.role === "MODERATOR")
+      ?.map((item: any) => ({
+        ...item,
+        createdBy: item?.isAnonymous ? "Anonymous" : item?.createdBy,
+      }));
+  } catch (error) {
+    throw new Error(`Failed to fetch campaigns: ${error}`);
+  }
+};
 export const MyPendingPendingCampaigns = async (id: number) => {
   try {
     const response = await prisma.awarenessCampaign.findMany({
@@ -178,6 +234,7 @@ export const MyPendingPendingCampaigns = async (id: number) => {
 export const counselorlistCampaigns = async () => {
   try {
     const response = await prisma.awarenessCampaign.findMany({
+      where: { isPostApproved: false },
       include: {
         createdBy: {
           select: {

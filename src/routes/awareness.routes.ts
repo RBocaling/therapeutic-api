@@ -7,12 +7,17 @@ const router = Router();
 router.post("/", authenticateUser, campaignController.createCampaign as any);
 router.get("/", authenticateUser, campaignController.listCampaigns);
 router.get(
-  "/counselor",
+  "/moderator-post",
+  authenticateUser,
+  campaignController.moderatorCampaigns
+);
+router.get(
+  "/user-request",
   authenticateUser,
   campaignController.counselorListCampaigns
 );
 router.get(
-  "/pending",
+  "/user-pending",
   authenticateUser,
   campaignController.pendingListCampaigns
 );
