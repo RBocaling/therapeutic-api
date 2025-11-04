@@ -122,13 +122,24 @@ export const submitSurveyResponse = async (
       throw new Error("Failed");
     }
 
-    const generateExerciseawait = await generateGuidedTlc(userId);
+    let result;
+    if (
+      userResponse?.resultCategory !== "Crisis" ||
+      Number(userResponse?.score) > 85
+    ) {
+      result = await generateGuidedTlc(userId, {
+        score: Number(userResponse?.score),
+        resultCategory: userResponse?.resultCategory,
+      });
+    }
+
+    // const generateExerciseawait = await generateGuidedTlc(userId);
     await prisma.user.update({
       where: { id: userId },
       data: { isTakeSurvey: true },
     });
 
-    return { ...userResponse, generateExercise: generateExerciseawait };
+    return { ...userResponse, tlcGuideGenerate: result };
   } catch (error: any) {
     throw new Error(error);
   }

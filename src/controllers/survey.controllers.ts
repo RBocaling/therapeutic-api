@@ -54,6 +54,7 @@ export const submitSurveyResponses = async (req: Request, res: Response) => {
       code,
       answers
     );
+
     res.status(200).json(response);
   } catch (error: any) {
     res.status(500).json({ message: error.message });

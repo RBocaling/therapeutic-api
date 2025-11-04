@@ -1,4 +1,4 @@
-import { authenticateUser } from './../middlewares/auth.middleware';
+import { authenticateUser } from "./../middlewares/auth.middleware";
 import { Router } from "express";
 import * as tlc from "../controllers/tlc.controllers";
 

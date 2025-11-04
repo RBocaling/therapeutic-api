@@ -2,46 +2,78 @@ export type TlcPromptOptions = {
   userName: string;
   age?: number | null;
   gender?: string | null;
-  mhi38Category: string;
-  goal: string;
+  mhi38: {
+    score: number;
+    resultCategory: "Crisis" | "Struggling" | "Responding" | "Healthy";
+  };
 };
 
 export const buildGuidedTlcPrompt = (opts: TlcPromptOptions) => {
+  let duration = 14;
+  if (opts.mhi38.resultCategory === "Responding") duration = 7;
+  if (opts.mhi38.resultCategory === "Healthy") duration = 3;
+
   const demographic = [
-    opts.userName ? `Name: ${opts.userName}` : null,
+    `User name: ${opts.userName}`,
     opts.age ? `Age: ${opts.age}` : null,
     opts.gender ? `Gender: ${opts.gender}` : null,
-    `Current Mental Health Category: ${opts.mhi38Category}`,
+    `MHI-38 Score: ${opts.mhi38.score}`,
+    `MHI-38 Result: ${opts.mhi38.resultCategory}`,
   ]
     .filter(Boolean)
     .join("\n");
 
-  return [
-    `You are a licensed clinical psychologist specializing in Therapeutic Lifestyle Change (TLC).`,
-    `Generate a highly structured and motivational TLC plan as a JSON object. No markdown, no explanation.`,
-    `User Info:\n${demographic}`,
-    `Goal: ${opts.goal}`,
+  return `
+You are a board-certified clinical psychologist with expertise in Therapeutic Lifestyle Change (TLC).
+Generate a detailed JSON ONLY – no markdown, no explanation.
 
-    `📘 Guidelines:
-1. The program duration is fixed based on the user's MHI-38 category (3 / 7 / 14 days).
+📘 TLC PROGRAM RULES
+1. Duration must be exactly **${duration} days**
 2. Each day must include:
-   - "day": number
-   - "instructions": a 70–100 word daily focus narrative that feels encouraging and educational
-   - "tasks": 4–6 actionable tasks from these domains:
-       • 🧘 Mindfulness or relaxation
-       • 🏃 Physical movement or exercise
-       • 🍎 Nutrition and healthy eating
-       • 💬 Journaling or reflection
-       • 🤝 Social connection or positive interaction
-   - Each task must have:
-       - "text": actionable sentence
-       - "durationMinutes": integer estimate
-       - "completed": false
-       - "notes": 1–2 sentences explaining its psychological or wellness benefit
-3. Gradually increase intensity — start easy, deepen self-reflection later.
-4. End the JSON with a "resultMessage" containing:
-   - "title": uplifting short phrase
-   - "message": 2–3 sentence motivational summary acknowledging progress.
-5. Tone: Empathetic, professional, supportive, and evidence-based.`,
-  ].join("\n\n");
+   - "day"
+   - "instructions" (50–100 words)
+   - "tasks": array of 3–6 items
+3. Each task must include:
+   - "text"
+   - "durationMinutes"
+   - "completed": false
+   - "notes"
+4. Domains to include within the program: mindfulness, movement, journaling, nutrition, sleep hygiene, social connection.
+5. Gradual progression (easy → deeper reflection).
+
+👤 USER CONTEXT:
+${demographic}
+
+🧩 OUTPUT FORMAT STRICT JSON:
+{
+  "title": "Personalized Guided TLC Program",
+  "durationDays": ${duration},
+  "days": [
+    {
+      "day": 1,
+      "instructions": "Begin by grounding yourself and becoming aware of your thoughts...",
+      "tasks": [
+        { "text": "Practice slow mindful breathing...", "durationMinutes": 10, "completed": false, "notes": "Regulates breathing and reduces tension" },
+        { "text": "Walk outdoors mindfully...", "durationMinutes": 20, "completed": false, "notes": "Improves mood and reduces cortisol" },
+        { "text": "Write a reflection journal...", "durationMinutes": 30, "completed": false, "notes": "Encourages emotional awareness" }
+      ]
+    }
+  ],
+  "resultMessage": {
+    "title": "Congratulations on Completing Your Guided TLC Journey",
+    "message": "You’ve completed your personalized TLC program...",
+    "certificate": {
+      "title": "Certificate of Completion",
+      "body": "This certifies that {{name}} has completed the Guided TLC Program.",
+      "date": "YYYY-MM-DD"
+    }
+  }
+}
+
+⚠ STRICT RULES
+- OUTPUT JSON ONLY
+- NO markdown
+- NO comments
+- NO trailing commas
+`;
 };
