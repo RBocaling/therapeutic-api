@@ -341,7 +341,7 @@ enum CampaignStatus {
 model AwarenessCampaign {
   id            Int             @id @default(autoincrement())
   title         String
-  content       String
+  content       String @db.Text
   type          CampaignType
   status        CampaignStatus  @default(DRAFT)
   isAnonymous Boolean @default(false)
@@ -361,7 +361,7 @@ model AwarenessCampaign {
 
 model Comment {
   id         Int       @id @default(autoincrement())
-  content    String
+  content    String @db.Text
   imageUrl   String? @db.Text
   userId     Int
   campaignId Int
