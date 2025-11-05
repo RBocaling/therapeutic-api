@@ -104,6 +104,7 @@ export const updateKycStatus = async (req: Request, res: Response) => {
 export const getProfileProgress = async (req: Request, res: Response) => {
   try {
     const userId = Number(req.user?.id);
+        if (!userId) return res.status(401).json({ message: "Unauthorized" });
     await generateQuoteOfTheDay(userId);
     const result = await auth.getProfileProgress(userId);
     res.status(200).json(result);
