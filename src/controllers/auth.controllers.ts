@@ -2,17 +2,20 @@ import { Request, Response } from "express";
 import * as auth from "../services/auth.services";
 import * as auditService from "../services/audit.services";
 import { createNotification } from "../services/notification.services";
+import { generateQuoteOfTheDay } from "../services/qoutes.services";
 
 export const googleLogin = async (req: Request, res: Response) => {
   try {
     const { token } = req.body;
     const tokens = await auth.googleAuthService(token, res);
-    res.status(200).json({ message: "Google login successful", tokens });
+    await generateQuoteOfTheDay(token?.id);
     await auditService.createAudit({
       description: "Login on Google",
       type: "LOGIN",
       userId: token?.id,
     });
+
+    res.status(200).json({ message: "Google login successful", tokens });
   } catch (err: any) {
     res.status(400).json({ message: err.message });
   }
@@ -26,6 +29,7 @@ export const register = async (req: Request, res: Response) => {
       type: "REGISTER",
       userId: user?.id,
     });
+    await generateQuoteOfTheDay(user?.id);
     res.status(201).json({ message: "Registered successfully" });
   } catch (err: any) {
     res.status(400).json({ message: err.message });
@@ -40,6 +44,7 @@ export const login = async (req: Request, res: Response) => {
       type: "LOGIN",
       userId: user?.id,
     });
+    await generateQuoteOfTheDay(user?.id);
     res.status(200).json({ message: "Login successful" });
   } catch (err: any) {
     res.status(400).json({ message: err.message });

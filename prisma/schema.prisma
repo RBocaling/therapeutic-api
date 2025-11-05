@@ -32,6 +32,7 @@ enum NotificationType {
   REFERRAL
   ACTIVITY_PROGRESS
   SECURITY
+  QUOTE
 }
 
 enum SessionType {
@@ -726,11 +727,6 @@ enum MessageFrom {
   USER
   MODERATOR
 }
-
-
-// ================================
-// ✅ CASE MANAGEMENT SYSTEM
-// ================================
 
 enum CaseCategory {
   STUDENT
