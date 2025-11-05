@@ -6,6 +6,7 @@ export const createCourseController = async (req: Request, res: Response) => {
     const uploadedById = Number(req.user?.id);
     const data = {
       title: req.body.title,
+      category: req.body.category,
       description: req.body.description,
       type: req.body.type,
       uploadedById,

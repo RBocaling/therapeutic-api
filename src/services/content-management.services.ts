@@ -3,6 +3,7 @@ import prisma from "../config/prisma";
 
 export const createCourse = async (data: {
   title: string;
+  category: string;
   description?: string;
   type: "MODULES" | "IMAGES" | "VIDEOS" | "AUDIO";
   uploadedById: number;
