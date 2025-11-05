@@ -8,7 +8,6 @@ export const googleLogin = async (req: Request, res: Response) => {
   try {
     const { token } = req.body;
     const tokens = await auth.googleAuthService(token, res);
-    await generateQuoteOfTheDay(token?.id);
     await auditService.createAudit({
       description: "Login on Google",
       type: "LOGIN",
@@ -29,7 +28,6 @@ export const register = async (req: Request, res: Response) => {
       type: "REGISTER",
       userId: user?.id,
     });
-    await generateQuoteOfTheDay(user?.id);
     res.status(201).json({ message: "Registered successfully" });
   } catch (err: any) {
     res.status(400).json({ message: err.message });
@@ -44,7 +42,6 @@ export const login = async (req: Request, res: Response) => {
       type: "LOGIN",
       userId: user?.id,
     });
-    await generateQuoteOfTheDay(user?.id);
     res.status(200).json({ message: "Login successful" });
   } catch (err: any) {
     res.status(400).json({ message: err.message });
@@ -107,6 +104,7 @@ export const updateKycStatus = async (req: Request, res: Response) => {
 export const getProfileProgress = async (req: Request, res: Response) => {
   try {
     const userId = Number(req.user?.id);
+    await generateQuoteOfTheDay(userId);
     const result = await auth.getProfileProgress(userId);
     res.status(200).json(result);
   } catch (err: any) {
