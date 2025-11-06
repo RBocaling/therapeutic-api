@@ -26,7 +26,7 @@ router.put(
 router.get(
   "/profile-progress",
   authenticateUser,
-  authController.getProfileProgress
+  authController.getProfileProgress as any
 );
 
 router.post("/forgot-password", authController.forgotPassword);
