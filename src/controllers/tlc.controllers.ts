@@ -4,9 +4,10 @@ import * as tlcService from "../services/tlc.services";
 export const createGuidedTlc = async (req: Request, res: Response) => {
   try {
     const userId = Number(req.user?.id);
+    const { score, resultCategory } = req.body;
     const result = await tlcService.generateGuidedTlc(userId, {
-      score: 75,
-      resultCategory: "Crisis",
+      score: Number(score),
+      resultCategory,
     });
     res.status(201).json({ success: true, data: result });
   } catch (e: any) {
