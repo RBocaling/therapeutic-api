@@ -2,6 +2,12 @@ import prisma from "../config/prisma";
 
 export const createSchool = async (name: string) => {
   try {
+    const school = await prisma.school?.findFirst({
+      where: {
+        name,
+      },
+    });
+    if (school) throw new Error("School is already Exist");
     return await prisma.school.create({ data: { name } });
   } catch (error: any) {
     throw new Error(error.message || "Failed to create school");

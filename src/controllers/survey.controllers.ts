@@ -27,15 +27,17 @@ export const getSurveyByCode = async (req: Request, res: Response) => {
 
     if (!survey) return res.status(404).json({ message: "Survey not found" });
 
-    const cleanedSurvey = {
-      ...survey,
-      questions: survey.questions.map((q: any) => ({
-        ...q,
-        options: Array.isArray(q.options)
-          ? q.options
-          : q.options?.options || [],
-      })),
-    };
+   const cleanedSurvey = {
+     ...survey,
+     questions: survey.questions.map((q: any) => ({
+       ...q,
+       options: Array.isArray(q.options)
+         ? q.options
+         : q.options?.options?.sort((a: any, b: any) => b?.score - a?.score) ||
+           [],
+     })),
+   };
+
 
     res.json(cleanedSurvey);
   } catch (error: any) {

@@ -159,6 +159,8 @@ model UserProfile {
   singleParentYears          Int?
   isPWD                      Boolean?       @default(false)
   disability                 String?
+  employeeUnit               String?
+  employeeOffice             String?
   familyIncomeRange          String?
   school                     String?
   course                     String?
@@ -541,6 +543,24 @@ model Course {
   schoolId  Int
   isDeleted Boolean? @default(false)
   school    School   @relation(fields: [schoolId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model Office {
+  id        Int       @id @default(autoincrement())
+  name      String
+  isDeleted Boolean? @default(false)
+  unit   Unit[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Unit {
+  id        Int      @id @default(autoincrement())
+  name      String
+  officeId  Int
+  isDeleted Boolean? @default(false)
+  office    Office   @relation(fields: [officeId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

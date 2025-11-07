@@ -200,6 +200,8 @@ export const completeUserProfile = async (userId: number, data: any) => {
         validId: data.validId ?? undefined,
         selfieImage: data.selfieImage ?? undefined,
         isFirstGenerationStudent: data.isFirstGenerationStudent ?? undefined,
+        employeeOffice: data.employeeOffice ?? undefined,
+        employeeUnit: data.employeeUnit ?? undefined,
         indigenousGroup: data.indigenousGroup ?? undefined,
         isSingleParent: data.isSingleParent ?? undefined,
         singleParentYears: data.singleParentYears ?? undefined,
