@@ -20,6 +20,34 @@ export const createCourse = async (schoolId: number, name: string) => {
     throw new Error(error.message || "Failed to create course");
   }
 };
+export const updateSchool = async (
+  id: number,
+  name: string,
+  isDeleted?: boolean
+) => {
+  try {
+    return await prisma.school.update({
+      where: { id },
+      data: { name, isDeleted },
+    });
+  } catch (error: any) {
+    throw new Error(error.message || "Failed to create course");
+  }
+};
+export const updateCourse = async (
+  id: number,
+  name: string,
+  isDeleted?: boolean
+) => {
+  try {
+    return await prisma.course.update({
+      where: { id },
+      data: { name, isDeleted },
+    });
+  } catch (error: any) {
+    throw new Error(error.message || "Failed to create course");
+  }
+};
 
 export const listSchools = async () => {
   try {

@@ -4,13 +4,15 @@ import * as schoolController from "../controllers/school.controllers";
 
 const router = Router();
 
-router.post("/add-school", authenticateUser, schoolController.addSchool);
-router.post("/add-course", authenticateUser, schoolController.addCourse);
-router.get("/schools", authenticateUser, schoolController.getSchools);
+router.post("/add-school", schoolController.addSchool);
+router.post("/add-course", schoolController.addCourse);
+router.get("/schools", schoolController.getSchools);
 router.get(
   "/courses/:schoolId",
   authenticateUser,
   schoolController.getCoursesBySchool
 );
+router.put("/course/:id", schoolController.updateCourse);
+router.put("/school/:id", schoolController.updateSchool);
 
 export default router;

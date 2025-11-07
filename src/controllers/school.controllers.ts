@@ -39,3 +39,25 @@ export const getCoursesBySchool = async (req: Request, res: Response) => {
     res.status(400).json({ success: false, message: error.message });
   }
 };
+
+// updated
+export const updateCourse = async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    const { name, isDeleted} = req.body;
+    const data = await schoolService.updateCourse(id, name, isDeleted);
+    res.json(data);
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+export const updateSchool = async (req: Request, res: Response) => {
+  try {
+     const id = Number(req.params.id);
+     const { name, isDeleted } = req.body;
+    const data = await schoolService.updateSchool(id, name, isDeleted);
+    res.json(data);
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
