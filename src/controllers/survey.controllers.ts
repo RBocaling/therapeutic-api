@@ -33,7 +33,7 @@ export const getSurveyByCode = async (req: Request, res: Response) => {
        ...q,
        options: Array.isArray(q.options)
          ? q.options
-         : q.options?.options?.sort((a: any, b: any) => b?.score - a?.score) ||
+         : q.options?.options?.sort((a: any, b: any) => a?.score - b?.score) ||
            [],
      })),
    };
