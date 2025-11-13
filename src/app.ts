@@ -14,7 +14,7 @@ import contentManagementRoutes from "./routes/content-management.routes";
 import tlcGuided from "./routes/tlc.routes";
 import peerSupportRoutes from "./routes/peerSupport.routes";
 import contactSupportRoutes from "./routes/contactSupport.routes";
-import schoolRoutes from "./routes/school.routes";
+import schoolRoutes from "./routes/general.routes";
 import ticketRoutes from "./routes/ticket.routes";
 import auditRoutes from "./routes/audit.routes";
 import reportRoutes from "./routes/report.routes";
@@ -24,7 +24,7 @@ const app = express();
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "http://localhost:5174",
+  "http://localhost:5175",
   "https://therapeutic-ai-clientside-rlacj515n.vercel.app",
   "https://therapeutic-ai-clientside-f5fn.vercel.app",
 ];

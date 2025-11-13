@@ -58,6 +58,7 @@ export const updateCourse = async (
 export const listSchools = async () => {
   try {
     return await prisma.school.findMany({
+      where: { isDeleted: false },
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     });
@@ -69,10 +70,17 @@ export const listSchools = async () => {
 export const listCoursesBySchool = async (schoolId: number) => {
   try {
     const school = await prisma.school.findUnique({
-      where: { id: schoolId },
-      include: { courses: { select: { id: true, name: true } } },
+      where: { id: schoolId, isDeleted: false },
+      include: {
+        courses: {
+          where: { isDeleted: false },
+          select: { id: true, name: true },
+        },
+      },
     });
     if (!school) throw new Error("School not found");
+
+    console.log("school.courses", school.courses);
 
     return school.courses;
   } catch (error: any) {

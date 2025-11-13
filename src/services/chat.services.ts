@@ -2,7 +2,7 @@ import prisma from "../config/prisma";
 
 export const createSession = async (
   userId: number,
-  counselorId?: number,
+  counselorId?: any,
   isAIChat = false
 ) => {
   try {
@@ -42,7 +42,7 @@ export const sendMessage = async (
 
 export const listSessions = async (userId: number, isCounselor: boolean) => {
   if (isCounselor) {
-    return prisma.chatSession.findMany({
+    return await prisma.chatSession.findMany({
       where: { counselorId: userId },
       include: {
         user: {
@@ -61,7 +61,19 @@ export const listSessions = async (userId: number, isCounselor: boolean) => {
       },
     });
   } else {
-    return prisma.chatSession.findMany({
+    const exist = await prisma.chatSession.findFirst({
+      where: {
+        userId,
+        isAIChat: true,
+      },
+    });
+    if (!exist) {
+      await prisma.chatSession.create({
+        data: { userId, isAIChat: true },
+        include: { messages: true },
+      });
+    }
+    return await prisma.chatSession.findMany({
       where: { userId },
       include: {
         counselor: {

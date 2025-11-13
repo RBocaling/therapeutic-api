@@ -3,7 +3,12 @@ import { Router } from "express";
 import * as tlc from "../controllers/tlc.controllers";
 
 const router = Router();
-router.post("/", authenticateUser, authenticateUser, tlc.createGuidedTlc);
+router.post(
+  "/",
+  authenticateUser,
+  authenticateUser,
+  tlc.createGuidedTlc as any
+);
 router.get("/", authenticateUser, tlc.getUserPlans);
 router.get("/:planId", authenticateUser, tlc.getPlanById as any);
 router.put("/", authenticateUser, tlc.completeTasks);

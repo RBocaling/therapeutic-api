@@ -55,9 +55,10 @@ export const updateUnit = async (
   }
 };
 
-export const listSchools = async () => {
+export const listOffice = async () => {
   try {
     return await prisma.office.findMany({
+      where: { isDeleted: false },
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     });
@@ -66,11 +67,16 @@ export const listSchools = async () => {
   }
 };
 
-export const listCoursesBySchool = async (officeId: number) => {
+export const listUnitByOffice = async (officeId: number) => {
   try {
     const office = await prisma.office.findUnique({
-      where: { id: officeId },
-      include: { unit: { select: { id: true, name: true } } },
+      where: { id: officeId, isDeleted: false },
+      include: {
+        unit: {
+          where: { isDeleted: false },
+          select: { id: true, name: true },
+        },
+      },
     });
     if (!office) throw new Error("office not found");
 
