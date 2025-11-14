@@ -28,6 +28,9 @@ const allowedOrigins = [
   "https://therapeutic-ai-clientside-rlacj515n.vercel.app",
   "https://therapeutic-ai-clientside-f5fn.vercel.app",
   "https://ascot-mentalhealthcare.site",
+  "https://localhost",
+  "http://localhost",
+  "capacitor://localhost",
 ];
 
 app.use(
