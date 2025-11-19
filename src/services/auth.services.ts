@@ -245,10 +245,6 @@ export const getProfileProgress = async (userId: number) => {
       "userStatus",
       "validId",
       "selfieImage",
-      "school",
-      "course",
-      "yearLevel",
-      "sectionBlock",
     ];
 
     const filledFields = personalFields.filter(

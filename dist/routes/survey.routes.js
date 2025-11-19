@@ -42,6 +42,7 @@ router.get("/seed/:code", auth_middleware_1.authenticateUser, survey.getSurveyBy
 router.get("/", auth_middleware_1.authenticateUser, survey.getAllSurveys);
 router.get("/results", auth_middleware_1.authenticateUser, survey.getUserSurveyResults);
 router.get("/survey-history", auth_middleware_1.authenticateUser, survey.getSurveyHistoryController);
+router.get("/counselor-survey-history/:userId", auth_middleware_1.authenticateUser, survey.getSurveyHistoryCounselorController);
 router.get("/survey-progress/:surveyFormId", auth_middleware_1.authenticateUser, survey.getSurveyProgressController);
 router.post("/:code/submit", auth_middleware_1.authenticateUser, survey.submitSurveyResponses);
 router.post("/progress-monitoring/notes", auth_middleware_1.authenticateUser, survey.createNote);

@@ -7,7 +7,21 @@ const router = Router();
 
 router.post("/", authenticateUser, Case.createCase);
 router.get("/", authenticateUser, Case.getCases);
-router.get("/:caseId", authenticateUser, Case.getCaseById as any);
 router.put("/status/:caseId", authenticateUser, Case.updateCaseStatus);
+
+// intervemtion
+router.post(
+  "/intervention",
+  authenticateUser,
+  Case.createCaseIntervention as any
+);
+router.get("/intervention", authenticateUser, Case.getCaseIntervention);
+router.delete(
+  "/intervention/:id",
+  authenticateUser,
+  Case.deleteCaseIntervention as any
+);
+router.get("/:caseId", authenticateUser, Case.getCaseById as any);
+
 
 export default router;

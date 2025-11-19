@@ -4,7 +4,8 @@ exports.getReports = void 0;
 const report_services_1 = require("../services/report.services");
 const getReports = async (req, res) => {
     try {
-        const response = await (0, report_services_1.getReportOverview)();
+        const couselorId = Number(req?.user?.id);
+        const response = await (0, report_services_1.getReportOverview)(couselorId);
         res.status(201).json(response);
     }
     catch (error) {

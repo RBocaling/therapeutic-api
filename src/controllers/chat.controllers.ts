@@ -17,6 +17,17 @@ export const createSession = async (req: Request, res: Response) => {
   }
 };
 
+export const createCounselorSession = async (req: Request, res: Response) => {
+  try {
+    const counselorId = Number(req?.user?.id);
+    const { userId } = req.body;
+    const session = await chatService.createSession(userId, counselorId, false);
+    res.status(201).json({ session });
+  } catch (err: any) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
 export const sendMessage = async (req: Request, res: Response) => {
   try {
     const userId = Number(req?.user?.id);
@@ -70,6 +81,55 @@ export const getMessages = async (req: Request, res: Response) => {
       isMe: item?.senderId == requesterId,
     }));
     res.status(200).json({ messages: messageResponse });
+  } catch (err: any) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
+//clients
+export const getCounselorClient = async (req: Request, res: Response) => {
+  try {
+    const couselorId = Number(req?.user?.id);
+    const messages = await chatService.getCounselorClient(couselorId);
+    res.status(200).json(messages);
+  } catch (err: any) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
+//chat request
+export const createChatRequest = async (req: Request, res: Response) => {
+  try {
+    const userId = Number(req?.user?.id);
+    const counselorId = Number(req?.body?.counselorId);
+    const messages = await chatService.createChatRequest(userId, counselorId);
+    res.status(200).json(messages);
+  } catch (err: any) {
+    res.status(400).json({ message: err.message });
+  }
+};
+export const getChatRequest = async (req: Request, res: Response) => {
+  try {
+    const messages = await chatService.getChatRequest();
+    res.status(200).json(messages);
+  } catch (err: any) {
+    res.status(400).json({ message: err.message });
+  }
+};
+export const getMyChatRequest = async (req: Request, res: Response) => {
+  try {
+    const userId = Number(req.user?.id);
+    const messages = await chatService.getMyChatRequest(userId);
+    res.status(200).json(messages);
+  } catch (err: any) {
+    res.status(400).json({ message: err.message });
+  }
+};
+export const approveChatRequest = async (req: Request, res: Response) => {
+  try {
+    const { id, status } = req.body;
+    const messages = await chatService.approveChatRequest(id, status);
+    res.status(200).json(messages);
   } catch (err: any) {
     res.status(400).json({ message: err.message });
   }

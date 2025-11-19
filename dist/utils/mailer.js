@@ -15,7 +15,7 @@ const transporter = nodemailer_1.default.createTransport({
 const sendMail = async (to, subject, html) => {
     try {
         await transporter.sendMail({
-            from: `"MindCare Support" <${process.env.EMAIL_USER}>`,
+            from: `"ASCOT AI MindCare Support" <${process.env.EMAIL_USER}>`,
             to,
             subject,
             html,

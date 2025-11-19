@@ -8,18 +8,21 @@ import {
 } from "../utils/compute.analytics";
 import { computeProgress } from "../utils/computeProgress";
 import { computeSurveyScore } from "../utils/surveyScoring";
-import { generateGuidedTlc } from "./tlc.services";
 
 export const seedSurveys = async (surveys: any[]) => {
   try {
     for (const survey of surveys) {
       const form = await prisma.surveyForm.upsert({
         where: { code: survey.code },
-        update: {},
-        create: {
+        update: {
           title: survey.title,
           description: survey.description,
+          scoringRules: survey.scoringRules ?? {},
+        },
+        create: {
           code: survey.code,
+          title: survey.title,
+          description: survey.description,
           scoringRules: survey.scoringRules ?? {},
         },
       });
@@ -30,9 +33,13 @@ export const seedSurveys = async (surveys: any[]) => {
             surveyFormId_orderQuestion: {
               surveyFormId: form.id,
               orderQuestion: index + 1,
-            } as any,
+            },
           },
-          update: {},
+          update: {
+            questionName: question.questionName,
+            questionType: question.questionType,
+            options: question.options,
+          },
           create: {
             surveyFormId: form.id,
             questionName: question.questionName,
@@ -43,9 +50,12 @@ export const seedSurveys = async (surveys: any[]) => {
         });
       }
     }
-    return prisma.surveyForm.findMany({ include: { questions: true } });
+
+    return prisma.surveyForm.findMany({
+      include: { questions: true },
+    });
   } catch (error: any) {
-    throw new Error(error);
+    throw new Error(error.message || "Error seeding surveys");
   }
 };
 
@@ -263,7 +273,6 @@ export const getSurveyHistory = async (userProfileId: number) => {
   }
 };
 
-
 export const getSurveyProgress = async (
   userProfileId: number,
   surveyFormId: number
@@ -384,6 +393,7 @@ export const getAllUserProgressMonitoring = async () => {
 
       return {
         userId: user.id,
+        profileId: user.profile?.id,
         name: `${user.firstName} ${user.lastName}`,
         email: user.email,
         program,
@@ -693,7 +703,26 @@ export const getCriticalAlerts = async (counselorId?: number) => {
       return {
         referralId: ref.id,
         userId: ref.user.id,
-        userName: `${ref.user.firstName} ${ref.user.lastName}`,
+        firstName: ref.user.firstName,
+        lastName: ref.user.lastName,
+        userName: ref.user.firstName,
+        gender: ref.user.profile?.gender,
+        birthday: ref.user.profile?.birthday,
+        contactNo: ref.user.profile?.contactNo,
+        isFirstGenerationStudent: ref.user.profile?.isFirstGenerationStudent,
+        indigenousGroup: ref.user.profile?.indigenousGroup,
+        isSingleParent: ref.user.profile?.isSingleParent,
+        singleParentYears: ref.user.profile?.singleParentYears,
+        familyIncomeRange: ref.user.profile?.familyIncomeRange,
+        school: ref.user.profile?.school,
+        course: ref.user.profile?.course,
+        yearLevel: ref.user.profile?.yearLevel,
+        sectionBlock: ref.user.profile?.sectionBlock,
+        jobPosition: ref.user.profile?.jobPosition,
+        office: ref.user.profile?.office,
+        disability: ref.user.profile?.disability,
+        isPWD: ref.user.profile?.isPWD,
+        profileUrl: ref.user.profilePic,
         surveyCode: latestSurvey,
         resultCategory: category,
         riskLevel,

@@ -9,8 +9,16 @@ router.post(
   authenticateUser,
   tlc.createGuidedTlc as any
 );
-router.get("/", authenticateUser, tlc.getUserPlans);
 router.get("/:planId", authenticateUser, tlc.getPlanById as any);
+
+router.get(
+  "/progress-module/:id",
+  authenticateUser,
+  tlc.getUserPlansByCounselor
+);
+router.get("/", authenticateUser, tlc.getUserPlans);
 router.put("/", authenticateUser, tlc.completeTasks);
+
+
 
 export default router;

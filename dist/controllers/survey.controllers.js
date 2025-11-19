@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.fetchMHI38Review = exports.markAsMarkedController = exports.acknowledgeAlertController = exports.getCriticalAlertsController = exports.getAnalyticsController = exports.createNote = exports.getAllUserProgressMonitoring = exports.getSurveyProgressController = exports.getSurveyHistoryController = exports.getUserSurveyResultsByAdmin = exports.getUserSurveyResults = exports.submitSurveyResponses = exports.getSurveyByCode = exports.getAllSurveys = exports.seedSurveys = void 0;
+exports.fetchMHI38Review = exports.markAsMarkedController = exports.acknowledgeAlertController = exports.getCriticalAlertsController = exports.getAnalyticsController = exports.createNote = exports.getAllUserProgressMonitoring = exports.getSurveyProgressController = exports.getSurveyHistoryCounselorController = exports.getSurveyHistoryController = exports.getUserSurveyResultsByAdmin = exports.getUserSurveyResults = exports.submitSurveyResponses = exports.getSurveyByCode = exports.getAllSurveys = exports.seedSurveys = void 0;
 const surveyService = __importStar(require("../services/survey.services"));
 const surveyData_1 = require("../utils/surveyData");
 const seedSurveys = async (_req, res) => {
@@ -68,7 +68,8 @@ const getSurveyByCode = async (req, res) => {
                 ...q,
                 options: Array.isArray(q.options)
                     ? q.options
-                    : q.options?.options || [],
+                    : q.options?.options?.sort((a, b) => a?.score - b?.score) ||
+                        [],
             })),
         };
         res.json(cleanedSurvey);
@@ -125,6 +126,18 @@ const getSurveyHistoryController = async (req, res) => {
     }
 };
 exports.getSurveyHistoryController = getSurveyHistoryController;
+const getSurveyHistoryCounselorController = async (req, res) => {
+    try {
+        const userId = Number(req.params.userId);
+        const data = await surveyService.getSurveyHistory(userId);
+        res.status(200).json(data);
+    }
+    catch (error) {
+        console.error("Error fetching survey history:", error);
+        res.status(500).json({ message: "Failed to fetch survey history." });
+    }
+};
+exports.getSurveyHistoryCounselorController = getSurveyHistoryCounselorController;
 // progress monitoringg
 const getSurveyProgressController = async (req, res) => {
     try {

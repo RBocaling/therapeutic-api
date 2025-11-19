@@ -12,29 +12,31 @@ const AT_RISK_KEYWORDS = [
   "at risk",
 ];
 
-export const getReportOverview = async () => {
+export const getReportOverview = async (counselorId: number) => {
   try {
-    // ✅ 1. Fetch ALL USERS (USER role), with profile & survey responses
-    const users = await prisma.user.findMany({
-      where: { role: "USER" },
+    const data = await prisma.chatSession.findMany({
+      where: { counselorId: counselorId },
       include: {
-        profile: true,
-        responses: true,
+        user: {
+          include: {
+            profile: true,
+            responses: true,
+          },
+        },
+        messages: { take: 1, orderBy: { createdAt: "desc" } },
       },
     });
 
-    console.log("🟡 FULL USERS DEBUG:", JSON.stringify(users, null, 2));
+    const users = data?.map((item: any) => item?.user);
 
     // ✅ 2. Filter AT-RISK USERS based on resultCategory
-    const atRiskUsers = users.filter((u) =>
-      u.responses.some((r) =>
-        AT_RISK_KEYWORDS.some((key) =>
+    const atRiskUsers = users?.filter((u: any) =>
+      u.responses?.some((r: any) =>
+        AT_RISK_KEYWORDS?.some((key) =>
           (r.resultCategory ?? "").toLowerCase().includes(key)
         )
       )
     );
-
-    console.log("🟢 AT RISK USERS:", atRiskUsers);
 
     // ✅ 3. Interventions most given (Counselor Notes)
     const interventions = await prisma.counselorNote.groupBy({
@@ -52,7 +54,7 @@ export const getReportOverview = async () => {
       "55+": 0,
     };
 
-    atRiskUsers.forEach((u) => {
+    atRiskUsers.forEach((u: any) => {
       const bday = u.profile?.birthday;
       if (!bday) return;
       const age = differenceInYears(new Date(), new Date(bday));
@@ -66,42 +68,44 @@ export const getReportOverview = async () => {
 
     // ✅ 5. GENDER DISTRIBUTION
     const genderCount: Record<string, number> = {};
-    atRiskUsers.forEach((u) => {
+    atRiskUsers.forEach((u: any) => {
       const gender = u.profile?.gender ?? "Unknown";
       genderCount[gender] = (genderCount[gender] || 0) + 1;
     });
 
     // ✅ 6. Indigenous / Tribe counting
     const indigenousCases = atRiskUsers.filter(
-      (u) => u.profile?.indigenousGroup
+      (u: any) => u.profile?.indigenousGroup
     );
 
     const tribeCount: Record<string, number> = {};
-    indigenousCases.forEach((u) => {
+    indigenousCases.forEach((u: any) => {
       const tribe = u.profile?.indigenousGroup!;
       tribeCount[tribe] = (tribeCount[tribe] || 0) + 1;
     });
 
     // ✅ 7. Single parents
-    const singleParents = atRiskUsers.filter((u) => u.profile?.isSingleParent);
+    const singleParents = atRiskUsers.filter(
+      (u: any) => u.profile?.isSingleParent
+    );
 
     // ✅ 8. Poor family at-risk
     const poorFamilies = atRiskUsers.filter(
-      (u) =>
+      (u: any) =>
         u.profile?.familyIncomeRange &&
         u.profile.familyIncomeRange.toLowerCase().includes("below")
     );
 
     // ✅ 9. First generation students
     const firstGenStudents = atRiskUsers.filter(
-      (u) => u.profile?.isFirstGenerationStudent
+      (u: any) => u.profile?.isFirstGenerationStudent
     );
 
     // ✅ 10. PWD and disability counting
-    const pwds = atRiskUsers.filter((u) => u.profile?.isPWD);
+    const pwds = atRiskUsers.filter((u: any) => u.profile?.isPWD);
 
     const disabilityCount: Record<string, number> = {};
-    pwds.forEach((u) => {
+    pwds.forEach((u: any) => {
       if (!u.profile?.disability) return;
       const dis = u.profile.disability;
       disabilityCount[dis] = (disabilityCount[dis] || 0) + 1;

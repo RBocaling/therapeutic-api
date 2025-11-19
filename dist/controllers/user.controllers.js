@@ -33,13 +33,15 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUserByIdController = exports.listUsersController = exports.getUserInfo = void 0;
+exports.getUserByIdController = exports.listUsersWithSurvey = exports.listUsersController = exports.getUserInfo = void 0;
 const user = __importStar(require("../services/user.services"));
+const qoutes_services_1 = require("../services/qoutes.services");
 const getUserInfo = async (req, res) => {
     try {
         const userId = req.user?.id;
         if (!userId)
             return res.status(401).json({ message: "Unauthorized" });
+        await (0, qoutes_services_1.generateQuoteOfTheDay)(userId);
         const data = await user.getUserUserInfo(userId);
         res.status(200).json(data);
     }
@@ -48,7 +50,7 @@ const getUserInfo = async (req, res) => {
     }
 };
 exports.getUserInfo = getUserInfo;
-const listUsersController = async (req, res) => {
+const listUsersController = async (_req, res) => {
     try {
         const users = await user.listUsers();
         res.json(users);
@@ -58,6 +60,16 @@ const listUsersController = async (req, res) => {
     }
 };
 exports.listUsersController = listUsersController;
+const listUsersWithSurvey = async (_req, res) => {
+    try {
+        const users = await user.listUsersWithSurvey();
+        res.json(users);
+    }
+    catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+exports.listUsersWithSurvey = listUsersWithSurvey;
 const getUserByIdController = async (req, res) => {
     try {
         const id = Number(req.params.id);

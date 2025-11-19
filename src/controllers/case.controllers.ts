@@ -22,6 +22,41 @@ export const getCases = async (_req: Request, res: Response) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+export const createCaseIntervention = async (req: Request, res: Response) => {
+  try {
+    const payload = req.body;
+    const result = await caseService.createCaseIntervention(payload);
+
+    res.status(201).json({ success: true, data: result });
+  } catch (error: any) {
+    console.error("Error creating interventions:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getCaseIntervention = async (_req: Request, res: Response) => {
+  try {
+    const cases = await caseService.getCaseIntervention();
+    res.json({ success: true, data: cases });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const deleteCaseIntervention = async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    if (!id) {
+      return res.status(400).json({ success: false, message: "Invalid id" });
+    }
+
+    const result = await caseService.deleteSingleIntervention(id);
+
+    res.status(200).json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 export const getCaseById = async (req: Request, res: Response) => {
   try {

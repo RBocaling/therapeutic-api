@@ -33,20 +33,23 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-const auth_middleware_1 = require("./../middlewares/auth.middleware");
 const express_1 = require("express");
-const chatController = __importStar(require("../controllers/chat.controllers"));
+const auth_middleware_1 = require("../middlewares/auth.middleware");
+const schoolController = __importStar(require("../controllers/school.controllers"));
+const officeController = __importStar(require("../controllers/office.controllers"));
 const router = (0, express_1.Router)();
-router.post("/session", auth_middleware_1.authenticateUser, chatController.createSession);
-router.post("/counselor-session", auth_middleware_1.authenticateUser, chatController.createCounselorSession);
-router.get("/sessions", auth_middleware_1.authenticateUser, chatController.listSessions);
-router.get("/messages/:chatSessionId", auth_middleware_1.authenticateUser, chatController.getMessages);
-router.post("/message", auth_middleware_1.authenticateUser, chatController.sendMessage);
-router.post("/message/ai", auth_middleware_1.authenticateUser, chatController.sendAIMessage);
-router.get("/clients", auth_middleware_1.authenticateUser, chatController.getCounselorClient);
-// chat request
-router.post("/chat-request", auth_middleware_1.authenticateUser, chatController.createChatRequest);
-router.get("/chat-request", auth_middleware_1.authenticateUser, chatController.getChatRequest);
-router.get("/my-chat-request", auth_middleware_1.authenticateUser, chatController.getMyChatRequest);
-router.post("/chat-request-approved", auth_middleware_1.authenticateUser, chatController.approveChatRequest);
+// school
+router.post("/add-school", schoolController.addSchool);
+router.post("/add-course", schoolController.addCourse);
+router.get("/schools", schoolController.getSchools);
+router.get("/courses/:schoolId", auth_middleware_1.authenticateUser, schoolController.getCoursesBySchool);
+router.put("/course/:id", schoolController.updateCourse);
+router.put("/school/:id", schoolController.updateSchool);
+// office/unit
+router.post("/add-office", officeController.addOffice);
+router.post("/add-unit", officeController.addUnit);
+router.get("/office", officeController.getOffice);
+router.get("/units/:officeId", auth_middleware_1.authenticateUser, officeController.getUnitByOffice);
+router.put("/office/:id", officeController.updateOffice);
+router.put("/unit/:id", officeController.updateUnit);
 exports.default = router;

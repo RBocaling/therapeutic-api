@@ -33,14 +33,18 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.completeTasks = exports.getPlanById = exports.getUserPlans = exports.createGuidedTlc = void 0;
+exports.completeTasks = exports.getPlanById = exports.getUserPlansByCounselor = exports.getUserPlans = exports.createGuidedTlc = void 0;
 const tlcService = __importStar(require("../services/tlc.services"));
 const createGuidedTlc = async (req, res) => {
     try {
         const userId = Number(req.user?.id);
+        const { score, resultCategory } = req.body;
+        if (resultCategory == "Crisis") {
+            return res.status(201).json({ success: true });
+        }
         const result = await tlcService.generateGuidedTlc(userId, {
-            score: 75,
-            resultCategory: "Crisis",
+            score: Number(score),
+            resultCategory,
         });
         res.status(201).json({ success: true, data: result });
     }
@@ -60,6 +64,18 @@ const getUserPlans = async (req, res) => {
     }
 };
 exports.getUserPlans = getUserPlans;
+const getUserPlansByCounselor = async (req, res) => {
+    try {
+        const userId = Number(req.params?.id);
+        console.log("userIduserId", userId);
+        const plans = await tlcService.getAllPlansByUser(userId);
+        res.json({ success: true, data: plans });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: String(error) });
+    }
+};
+exports.getUserPlansByCounselor = getUserPlansByCounselor;
 const getPlanById = async (req, res) => {
     try {
         const planId = Number(req.params.planId);

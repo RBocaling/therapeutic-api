@@ -12,8 +12,13 @@ router.get("/results", authenticateUser, survey.getUserSurveyResults);
 
 router.get("/survey-history",authenticateUser, survey.getSurveyHistoryController);
 router.get(
-    "/survey-progress/:surveyFormId",
-    authenticateUser,
+  "/counselor-survey-history/:userId",
+  authenticateUser,
+  survey.getSurveyHistoryCounselorController
+);
+router.get(
+  "/survey-progress/:surveyFormId",
+  authenticateUser,
   survey.getSurveyProgressController
 );
 

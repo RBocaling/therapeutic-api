@@ -9,17 +9,20 @@ const prisma_1 = __importDefault(require("../config/prisma"));
 const compute_analytics_1 = require("../utils/compute.analytics");
 const computeProgress_1 = require("../utils/computeProgress");
 const surveyScoring_1 = require("../utils/surveyScoring");
-const tlc_services_1 = require("./tlc.services");
 const seedSurveys = async (surveys) => {
     try {
         for (const survey of surveys) {
             const form = await prisma_1.default.surveyForm.upsert({
                 where: { code: survey.code },
-                update: {},
-                create: {
+                update: {
                     title: survey.title,
                     description: survey.description,
+                    scoringRules: survey.scoringRules ?? {},
+                },
+                create: {
                     code: survey.code,
+                    title: survey.title,
+                    description: survey.description,
                     scoringRules: survey.scoringRules ?? {},
                 },
             });
@@ -31,7 +34,11 @@ const seedSurveys = async (surveys) => {
                             orderQuestion: index + 1,
                         },
                     },
-                    update: {},
+                    update: {
+                        questionName: question.questionName,
+                        questionType: question.questionType,
+                        options: question.options,
+                    },
                     create: {
                         surveyFormId: form.id,
                         questionName: question.questionName,
@@ -42,10 +49,12 @@ const seedSurveys = async (surveys) => {
                 });
             }
         }
-        return prisma_1.default.surveyForm.findMany({ include: { questions: true } });
+        return prisma_1.default.surveyForm.findMany({
+            include: { questions: true },
+        });
     }
     catch (error) {
-        throw new Error(error);
+        throw new Error(error.message || "Error seeding surveys");
     }
 };
 exports.seedSurveys = seedSurveys;
@@ -115,20 +124,21 @@ const submitSurveyResponse = async (userId, surveyCode, answers) => {
         if (!userResponse) {
             throw new Error("Failed");
         }
-        let result;
-        if (userResponse?.resultCategory !== "Crisis" ||
-            Number(userResponse?.score) > 85) {
-            result = await (0, tlc_services_1.generateGuidedTlc)(userId, {
-                score: Number(userResponse?.score),
-                resultCategory: userResponse?.resultCategory,
-            });
-        }
-        // const generateExerciseawait = await generateGuidedTlc(userId);
+        // let result;
+        // if (
+        //   userResponse?.resultCategory !== "Crisis" ||
+        //   Number(userResponse?.score) > 85
+        // ) {
+        //   result = await generateGuidedTlc(userId, {
+        //     score: Number(userResponse?.score),
+        //     resultCategory: userResponse?.resultCategory,
+        //   });
+        // }
         await prisma_1.default.user.update({
             where: { id: userId },
             data: { isTakeSurvey: true },
         });
-        return { ...userResponse, tlcGuideGenerate: result };
+        return userResponse;
     }
     catch (error) {
         throw new Error(error);
@@ -352,6 +362,7 @@ const getAllUserProgressMonitoring = async () => {
             const totalSessions = responses.length;
             return {
                 userId: user.id,
+                profileId: user.profile?.id,
                 name: `${user.firstName} ${user.lastName}`,
                 email: user.email,
                 program,
@@ -610,7 +621,26 @@ const getCriticalAlerts = async (counselorId) => {
             return {
                 referralId: ref.id,
                 userId: ref.user.id,
-                userName: `${ref.user.firstName} ${ref.user.lastName}`,
+                firstName: ref.user.firstName,
+                lastName: ref.user.lastName,
+                userName: ref.user.firstName,
+                gender: ref.user.profile?.gender,
+                birthday: ref.user.profile?.birthday,
+                contactNo: ref.user.profile?.contactNo,
+                isFirstGenerationStudent: ref.user.profile?.isFirstGenerationStudent,
+                indigenousGroup: ref.user.profile?.indigenousGroup,
+                isSingleParent: ref.user.profile?.isSingleParent,
+                singleParentYears: ref.user.profile?.singleParentYears,
+                familyIncomeRange: ref.user.profile?.familyIncomeRange,
+                school: ref.user.profile?.school,
+                course: ref.user.profile?.course,
+                yearLevel: ref.user.profile?.yearLevel,
+                sectionBlock: ref.user.profile?.sectionBlock,
+                jobPosition: ref.user.profile?.jobPosition,
+                office: ref.user.profile?.office,
+                disability: ref.user.profile?.disability,
+                isPWD: ref.user.profile?.isPWD,
+                profileUrl: ref.user.profilePic,
                 surveyCode: latestSurvey,
                 resultCategory: category,
                 riskLevel,

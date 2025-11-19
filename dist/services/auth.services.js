@@ -193,6 +193,8 @@ const completeUserProfile = async (userId, data) => {
                 validId: data.validId ?? undefined,
                 selfieImage: data.selfieImage ?? undefined,
                 isFirstGenerationStudent: data.isFirstGenerationStudent ?? undefined,
+                employeeOffice: data.employeeOffice ?? undefined,
+                employeeUnit: data.employeeUnit ?? undefined,
                 indigenousGroup: data.indigenousGroup ?? undefined,
                 isSingleParent: data.isSingleParent ?? undefined,
                 singleParentYears: data.singleParentYears ?? undefined,
@@ -236,10 +238,6 @@ const getProfileProgress = async (userId) => {
             "userStatus",
             "validId",
             "selfieImage",
-            "school",
-            "course",
-            "yearLevel",
-            "sectionBlock",
         ];
         const filledFields = personalFields.filter((f) => profile[f] !== null &&
             profile[f] !== undefined &&

@@ -99,6 +99,19 @@ export const getSurveyHistoryController = async (
     res.status(500).json({ message: "Failed to fetch survey history." });
   }
 };
+export const getSurveyHistoryCounselorController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const userId = Number(req.params.userId);
+    const data = await surveyService.getSurveyHistory(userId);
+    res.status(200).json(data);
+  } catch (error) {
+    console.error("Error fetching survey history:", error);
+    res.status(500).json({ message: "Failed to fetch survey history." });
+  }
+};
 
 // progress monitoringg
 export const getSurveyProgressController = async (

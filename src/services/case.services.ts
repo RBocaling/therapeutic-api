@@ -1,3 +1,4 @@
+import { CaseIntervention } from "./../../node_modules/.prisma/client/index.d";
 // src/services/case.services.ts
 import prisma from "../config/prisma";
 
@@ -8,6 +9,7 @@ export const createCase = async (
     category: "STUDENT" | "EMPLOYEE";
     title: string;
     description?: string;
+    intervention?: string;
     evidenceUrls?: string[];
   }
 ) => {
@@ -19,6 +21,7 @@ export const createCase = async (
         category: data.category,
         title: data.title,
         description: data.description,
+        intervention: data?.intervention,
       },
     });
 
@@ -57,5 +60,33 @@ export const updateCaseStatus = async (caseId: number, status: any) => {
   return prisma.caseManagement.update({
     where: { id: caseId },
     data: { status },
+  });
+};
+
+interface InterventionInput {
+  id?: number;
+  intervention: string;
+}
+
+export const createCaseIntervention = async (item: InterventionInput) => {
+  const result = await prisma.caseIntervention.upsert({
+    where: { intervention: item.intervention },
+    update: {
+      intervention: item.intervention,
+    },
+    create: {
+      intervention: item.intervention,
+    },
+  });
+
+  return result;
+};
+
+export const getCaseIntervention = async () => {
+  return await prisma.caseIntervention.findMany();
+};
+export const deleteSingleIntervention = async (id: number) => {
+  return prisma.caseIntervention.delete({
+    where: { id },
   });
 };

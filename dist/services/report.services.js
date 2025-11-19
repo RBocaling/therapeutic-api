@@ -16,20 +16,23 @@ const AT_RISK_KEYWORDS = [
     "struggling",
     "at risk",
 ];
-const getReportOverview = async () => {
+const getReportOverview = async (counselorId) => {
     try {
-        // ✅ 1. Fetch ALL USERS (USER role), with profile & survey responses
-        const users = await prisma_1.default.user.findMany({
-            where: { role: "USER" },
+        const data = await prisma_1.default.chatSession.findMany({
+            where: { counselorId: counselorId },
             include: {
-                profile: true,
-                responses: true,
+                user: {
+                    include: {
+                        profile: true,
+                        responses: true,
+                    },
+                },
+                messages: { take: 1, orderBy: { createdAt: "desc" } },
             },
         });
-        console.log("🟡 FULL USERS DEBUG:", JSON.stringify(users, null, 2));
+        const users = data?.map((item) => item?.user);
         // ✅ 2. Filter AT-RISK USERS based on resultCategory
-        const atRiskUsers = users.filter((u) => u.responses.some((r) => AT_RISK_KEYWORDS.some((key) => (r.resultCategory ?? "").toLowerCase().includes(key))));
-        console.log("🟢 AT RISK USERS:", atRiskUsers);
+        const atRiskUsers = users?.filter((u) => u.responses?.some((r) => AT_RISK_KEYWORDS?.some((key) => (r.resultCategory ?? "").toLowerCase().includes(key))));
         // ✅ 3. Interventions most given (Counselor Notes)
         const interventions = await prisma_1.default.counselorNote.groupBy({
             by: ["noteType"],

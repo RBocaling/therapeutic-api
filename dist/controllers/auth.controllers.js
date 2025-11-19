@@ -37,16 +37,17 @@ exports.resetPassword = exports.forgotPassword = exports.changePassword = export
 const auth = __importStar(require("../services/auth.services"));
 const auditService = __importStar(require("../services/audit.services"));
 const notification_services_1 = require("../services/notification.services");
+const qoutes_services_1 = require("../services/qoutes.services");
 const googleLogin = async (req, res) => {
     try {
         const { token } = req.body;
         const tokens = await auth.googleAuthService(token, res);
-        res.status(200).json({ message: "Google login successful", tokens });
         await auditService.createAudit({
             description: "Login on Google",
             type: "LOGIN",
             userId: token?.id,
         });
+        res.status(200).json({ message: "Google login successful", tokens });
     }
     catch (err) {
         res.status(400).json({ message: err.message });
@@ -142,6 +143,9 @@ exports.updateKycStatus = updateKycStatus;
 const getProfileProgress = async (req, res) => {
     try {
         const userId = Number(req.user?.id);
+        if (!userId)
+            return res.status(401).json({ message: "Unauthorized" });
+        await (0, qoutes_services_1.generateQuoteOfTheDay)(userId);
         const result = await auth.getProfileProgress(userId);
         res.status(200).json(result);
     }

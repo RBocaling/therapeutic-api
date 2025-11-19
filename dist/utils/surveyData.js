@@ -124,14 +124,14 @@ exports.seedAllSurveysData = [
                 questionType: "single_choice",
                 options: {
                     options: [
-                        { text: "No, not at all", score: 5 },
-                        { text: "Maybe a little", score: 4 },
+                        { text: "No, not at all", score: 6 },
+                        { text: "Maybe a little", score: 5 },
                         {
                             text: "Yes, but not enough to be concerned or worried about",
-                            score: 3,
+                            score: 4,
                         },
-                        { text: "Yes, and I have been a little concerned", score: 2 },
-                        { text: "Yes, and I am quite concerned", score: 1 },
+                        { text: "Yes, and I have been a little concerned", score: 3 },
+                        { text: "Yes, and I am quite concerned", score: 2 },
                         { text: "Yes, I am very much concerned about it", score: 1 },
                     ],
                 },

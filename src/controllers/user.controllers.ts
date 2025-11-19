@@ -14,9 +14,17 @@ export const getUserInfo = async (req: Request, res: Response) => {
   }
 };
 
-export const listUsersController = async (req: Request, res: Response) => {
+export const listUsersController = async (_req: Request, res: Response) => {
   try {
     const users = await user.listUsers();
+    res.json(users);
+  } catch (err: any) {
+    res.status(500).json({ message: err.message });
+  }
+};
+export const listUsersWithSurvey = async (_req: Request, res: Response) => {
+  try {
+    const users = await user.listUsersWithSurvey();
     res.json(users);
   } catch (err: any) {
     res.status(500).json({ message: err.message });

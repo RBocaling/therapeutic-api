@@ -39,5 +39,6 @@ const auth_middleware_1 = require("../middlewares/auth.middleware");
 const router = (0, express_1.Router)();
 router.get("/get-info", auth_middleware_1.authenticateUser, user.getUserInfo);
 router.get("/", user.listUsersController);
+router.get("/list-w-survey", user.listUsersWithSurvey);
 router.get("/:id", user.getUserByIdController);
 exports.default = router;

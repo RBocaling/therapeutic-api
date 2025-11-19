@@ -19,16 +19,21 @@ const content_management_routes_1 = __importDefault(require("./routes/content-ma
 const tlc_routes_1 = __importDefault(require("./routes/tlc.routes"));
 const peerSupport_routes_1 = __importDefault(require("./routes/peerSupport.routes"));
 const contactSupport_routes_1 = __importDefault(require("./routes/contactSupport.routes"));
-const school_routes_1 = __importDefault(require("./routes/school.routes"));
+const general_routes_1 = __importDefault(require("./routes/general.routes"));
 const ticket_routes_1 = __importDefault(require("./routes/ticket.routes"));
 const audit_routes_1 = __importDefault(require("./routes/audit.routes"));
 const report_routes_1 = __importDefault(require("./routes/report.routes"));
+const case_routes_1 = __importDefault(require("./routes/case.routes"));
 const app = (0, express_1.default)();
 const allowedOrigins = [
     "http://localhost:5173",
-    "http://localhost:5174",
+    "http://localhost:5175",
     "https://therapeutic-ai-clientside-rlacj515n.vercel.app",
     "https://therapeutic-ai-clientside-f5fn.vercel.app",
+    "https://ascot-mentalhealthcare.site",
+    "https://localhost",
+    "http://localhost",
+    "capacitor://localhost",
 ];
 app.use((0, cors_1.default)({
     origin: allowedOrigins,
@@ -51,8 +56,9 @@ app.use("/api/content-management", content_management_routes_1.default);
 app.use("/api/tlc-guide", tlc_routes_1.default);
 app.use("/api/peer-support", peerSupport_routes_1.default);
 app.use("/api/contact-support", contactSupport_routes_1.default);
-app.use("/api/general", school_routes_1.default);
+app.use("/api/general", general_routes_1.default);
 app.use("/api/ticket", ticket_routes_1.default);
 app.use("/api/audit-trail", audit_routes_1.default);
 app.use("/api/reports", report_routes_1.default);
+app.use("/api/case-management", case_routes_1.default);
 exports.default = app;

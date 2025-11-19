@@ -64,7 +64,7 @@ enum LocationType {
   PHONE_CALL
 }
 
-model User {
+model   User {
   id                  Int                  @id @default(autoincrement())
   firstName           String
   lastName            String
@@ -125,9 +125,13 @@ model User {
   CounselorNotes  CounselorNote[] @relation("CounselorNotes") // ✅ As counselor writing notes
   UserNotes       CounselorNote[] @relation("UserNotes") 
 
+//chat request
+chatRequestsAsUser       ChatRequest[] @relation("UserChatRequests")
+chatRequestsAsCounselor  ChatRequest[] @relation("CounselorChatRequests")
+
 // case ,anahement
  casesAsClient       CaseManagement[] @relation("ClientCase")
-casesAsCounselor    CaseManagement[] @relation("CounselorCase")
+  casesAsCounselor    CaseManagement[] @relation("CounselorCase")
   // Ticketing
   tickets     SupportTicket[]
 
@@ -771,7 +775,7 @@ model CaseManagement {
   title       String
   description String?       @db.Text
   status      CaseStatus    @default(OPEN)
-
+  intervention String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -788,4 +792,30 @@ model CaseEvidence {
   uploadedAt DateTime @default(now())
 
   case CaseManagement @relation(fields: [caseId], references: [id])
+}
+model CaseIntervention {
+  id         Int      @id @default(autoincrement())
+  intervention String @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+
+model ChatRequest {
+  id           Int               @id @default(autoincrement())
+  userId       Int
+  counselorId  Int?
+  message      String? @db.Text
+  status       ChatRequestStatus @default(PENDING)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  isDeleted Boolean @default(false)
+  user         User              @relation("UserChatRequests", fields: [userId], references: [id])
+  counselor    User?             @relation("CounselorChatRequests", fields: [counselorId], references: [id])
+}
+enum ChatRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
 }

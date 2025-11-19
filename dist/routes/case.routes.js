@@ -33,20 +33,17 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-const auth_middleware_1 = require("./../middlewares/auth.middleware");
+// src/routes/case.routes.ts
 const express_1 = require("express");
-const chatController = __importStar(require("../controllers/chat.controllers"));
+const auth_middleware_1 = require("../middlewares/auth.middleware");
+const Case = __importStar(require("../controllers/case.controllers"));
 const router = (0, express_1.Router)();
-router.post("/session", auth_middleware_1.authenticateUser, chatController.createSession);
-router.post("/counselor-session", auth_middleware_1.authenticateUser, chatController.createCounselorSession);
-router.get("/sessions", auth_middleware_1.authenticateUser, chatController.listSessions);
-router.get("/messages/:chatSessionId", auth_middleware_1.authenticateUser, chatController.getMessages);
-router.post("/message", auth_middleware_1.authenticateUser, chatController.sendMessage);
-router.post("/message/ai", auth_middleware_1.authenticateUser, chatController.sendAIMessage);
-router.get("/clients", auth_middleware_1.authenticateUser, chatController.getCounselorClient);
-// chat request
-router.post("/chat-request", auth_middleware_1.authenticateUser, chatController.createChatRequest);
-router.get("/chat-request", auth_middleware_1.authenticateUser, chatController.getChatRequest);
-router.get("/my-chat-request", auth_middleware_1.authenticateUser, chatController.getMyChatRequest);
-router.post("/chat-request-approved", auth_middleware_1.authenticateUser, chatController.approveChatRequest);
+router.post("/", auth_middleware_1.authenticateUser, Case.createCase);
+router.get("/", auth_middleware_1.authenticateUser, Case.getCases);
+router.put("/status/:caseId", auth_middleware_1.authenticateUser, Case.updateCaseStatus);
+// intervemtion
+router.post("/intervention", auth_middleware_1.authenticateUser, Case.createCaseIntervention);
+router.get("/intervention", auth_middleware_1.authenticateUser, Case.getCaseIntervention);
+router.delete("/intervention/:id", auth_middleware_1.authenticateUser, Case.deleteCaseIntervention);
+router.get("/:caseId", auth_middleware_1.authenticateUser, Case.getCaseById);
 exports.default = router;

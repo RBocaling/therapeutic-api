@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMessages = exports.listSessions = exports.sendAIMessage = exports.sendMessage = exports.createSession = void 0;
+exports.approveChatRequest = exports.getMyChatRequest = exports.getChatRequest = exports.createChatRequest = exports.getCounselorClient = exports.getMessages = exports.listSessions = exports.sendAIMessage = exports.sendMessage = exports.createCounselorSession = exports.createSession = void 0;
 const chatService = __importStar(require("../services/chat.services"));
 const aiService = __importStar(require("../services/openai.services"));
 const createSession = async (req, res) => {
@@ -48,6 +48,18 @@ const createSession = async (req, res) => {
     }
 };
 exports.createSession = createSession;
+const createCounselorSession = async (req, res) => {
+    try {
+        const counselorId = Number(req?.user?.id);
+        const { userId } = req.body;
+        const session = await chatService.createSession(userId, counselorId, false);
+        res.status(201).json({ session });
+    }
+    catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+};
+exports.createCounselorSession = createCounselorSession;
 const sendMessage = async (req, res) => {
     try {
         const userId = Number(req?.user?.id);
@@ -100,3 +112,60 @@ const getMessages = async (req, res) => {
     }
 };
 exports.getMessages = getMessages;
+//clients
+const getCounselorClient = async (req, res) => {
+    try {
+        const couselorId = Number(req?.user?.id);
+        const messages = await chatService.getCounselorClient(couselorId);
+        res.status(200).json(messages);
+    }
+    catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+};
+exports.getCounselorClient = getCounselorClient;
+//chat request
+const createChatRequest = async (req, res) => {
+    try {
+        const userId = Number(req?.user?.id);
+        const counselorId = Number(req?.body?.counselorId);
+        const messages = await chatService.createChatRequest(userId, counselorId);
+        res.status(200).json(messages);
+    }
+    catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+};
+exports.createChatRequest = createChatRequest;
+const getChatRequest = async (req, res) => {
+    try {
+        const messages = await chatService.getChatRequest();
+        res.status(200).json(messages);
+    }
+    catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+};
+exports.getChatRequest = getChatRequest;
+const getMyChatRequest = async (req, res) => {
+    try {
+        const userId = Number(req.user?.id);
+        const messages = await chatService.getMyChatRequest(userId);
+        res.status(200).json(messages);
+    }
+    catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+};
+exports.getMyChatRequest = getMyChatRequest;
+const approveChatRequest = async (req, res) => {
+    try {
+        const { id, status } = req.body;
+        const messages = await chatService.approveChatRequest(id, status);
+        res.status(200).json(messages);
+    }
+    catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+};
+exports.approveChatRequest = approveChatRequest;

@@ -33,73 +33,73 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateSchool = exports.updateCourse = exports.getCoursesBySchool = exports.getSchools = exports.addCourse = exports.addSchool = void 0;
-const schoolService = __importStar(require("../services/school.services"));
-const addSchool = async (req, res) => {
+exports.updateUnit = exports.updateOffice = exports.getUnitByOffice = exports.getOffice = exports.addUnit = exports.addOffice = void 0;
+const schoolService = __importStar(require("../services/office.services"));
+const addOffice = async (req, res) => {
     try {
         const { name } = req.body;
-        const data = await schoolService.createSchool(name);
+        const data = await schoolService.createOffice(name);
         res.status(201).json(data);
     }
     catch (error) {
         res.status(400).json({ success: false, message: error.message });
     }
 };
-exports.addSchool = addSchool;
-const addCourse = async (req, res) => {
+exports.addOffice = addOffice;
+const addUnit = async (req, res) => {
     try {
         const { schoolId, name } = req.body;
-        const data = await schoolService.createCourse(Number(schoolId), name);
+        const data = await schoolService.createUnit(Number(schoolId), name);
         res.status(201).json(data);
     }
     catch (error) {
         res.status(400).json({ success: false, message: error.message });
     }
 };
-exports.addCourse = addCourse;
-const getSchools = async (req, res) => {
+exports.addUnit = addUnit;
+const getOffice = async (req, res) => {
     try {
-        const data = await schoolService.listSchools();
+        const data = await schoolService.listOffice();
         res.json(data);
     }
     catch (error) {
         res.status(400).json({ success: false, message: error.message });
     }
 };
-exports.getSchools = getSchools;
-const getCoursesBySchool = async (req, res) => {
+exports.getOffice = getOffice;
+const getUnitByOffice = async (req, res) => {
     try {
-        const schoolId = Number(req.params.schoolId);
-        const data = await schoolService.listCoursesBySchool(schoolId);
+        const schoolId = Number(req.params.officeId);
+        const data = await schoolService.listUnitByOffice(schoolId);
         res.json(data);
     }
     catch (error) {
         res.status(400).json({ success: false, message: error.message });
     }
 };
-exports.getCoursesBySchool = getCoursesBySchool;
+exports.getUnitByOffice = getUnitByOffice;
 // updated
-const updateCourse = async (req, res) => {
+const updateOffice = async (req, res) => {
     try {
         const id = Number(req.params.id);
         const { name, isDeleted } = req.body;
-        const data = await schoolService.updateCourse(id, name, isDeleted);
+        const data = await schoolService.updateOffice(id, name, isDeleted);
         res.json(data);
     }
     catch (error) {
         res.status(400).json({ success: false, message: error.message });
     }
 };
-exports.updateCourse = updateCourse;
-const updateSchool = async (req, res) => {
+exports.updateOffice = updateOffice;
+const updateUnit = async (req, res) => {
     try {
         const id = Number(req.params.id);
         const { name, isDeleted } = req.body;
-        const data = await schoolService.updateSchool(id, name, isDeleted);
+        const data = await schoolService.updateUnit(id, name, isDeleted);
         res.json(data);
     }
     catch (error) {
         res.status(400).json({ success: false, message: error.message });
     }
 };
-exports.updateSchool = updateSchool;
+exports.updateUnit = updateUnit;
