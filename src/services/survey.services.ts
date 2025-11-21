@@ -71,14 +71,10 @@ export const getAllSurveys = () => {
 };
 
 export const getSurveyByCode = (code: string) => {
-  try {
-    return prisma.surveyForm.findUnique({
-      where: { code },
-      include: { questions: { orderBy: { orderQuestion: "asc" } } },
-    });
-  } catch (error: any) {
-    throw new Error(error);
-  }
+  return prisma.surveyForm.findUnique({
+    where: { code },
+    include: { questions: { orderBy: { orderQuestion: "asc" } } },
+  });
 };
 
 export const submitSurveyResponse = async (

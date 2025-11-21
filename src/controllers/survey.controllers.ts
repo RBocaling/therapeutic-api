@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import * as surveyService from "../services/survey.services";
 import { seedAllSurveysData } from "../utils/surveyData";
+import { MHI38_TAGALOG } from "../utils/static_mhi_38";
 
 export const seedSurveys = async (_req: Request, res: Response) => {
   try {
@@ -23,21 +24,51 @@ export const getAllSurveys = async (_req: Request, res: Response) => {
 export const getSurveyByCode = async (req: Request, res: Response) => {
   try {
     const { code } = req.params;
-    const survey = await surveyService.getSurveyByCode(code);
+    const lang =
+      (req.query.lang as string) || (req.query.language as string) || "english";
 
+    const survey = await surveyService.getSurveyByCode(code);
     if (!survey) return res.status(404).json({ message: "Survey not found" });
 
-   const cleanedSurvey = {
-     ...survey,
-     questions: survey.questions.map((q: any) => ({
-       ...q,
-       options: Array.isArray(q.options)
-         ? q.options
-         : q.options?.options?.sort((a: any, b: any) => a?.score - b?.score) ||
-           [],
-     })),
-   };
+    const isFilipino = ["fil", "tagalog", "tl", "ph"].includes(
+      lang.toLowerCase()
+    );
 
+    let translatedQuestions = survey.questions;
+
+    if (isFilipino && code === "MHI-38") {
+      translatedQuestions = survey.questions.map((q, i) => {
+        const translated = MHI38_TAGALOG[i];
+        if (!translated) return q;
+
+        const originalOptions = Array.isArray(q.options)
+          ? q.options
+          : (q.options as any)?.options || [];
+
+        const fixedOptions = originalOptions.map((opt: any, idx: number) => ({
+          ...opt,
+          text: translated.options.options[idx]?.text || opt.text,
+        }));
+
+        return {
+          ...q,
+          questionName: translated.questionName,
+          options: fixedOptions,
+        };
+      });
+    }
+
+    const cleanedSurvey = {
+      ...survey,
+      questions: translatedQuestions.map((q: any) => ({
+        ...q,
+        options: Array.isArray(q.options)
+          ? q.options.sort((a: any, b: any) => a.score - b.score)
+          : (q.options?.options || []).sort(
+              (a: any, b: any) => a.score - b.score
+            ),
+      })),
+    };
 
     res.json(cleanedSurvey);
   } catch (error: any) {
