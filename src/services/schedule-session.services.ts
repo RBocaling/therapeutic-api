@@ -87,6 +87,11 @@ export const listSchedulesForCounselor = async (counselorId: number) => {
             firstName: true,
             lastName: true,
             profilePic: true,
+            profile: {
+              select: {
+                userStatus: true,
+              },
+            },
           },
         },
       },

@@ -356,6 +356,7 @@ export const getAllUserProgressMonitoring = async () => {
       if (responses.length === 0) {
         return {
           userId: user.id,
+          category: user.profile?.userStatus,
           name: `${user.firstName} ${user.lastName}`,
           email: user.email,
           program: "No Program",
@@ -394,6 +395,7 @@ export const getAllUserProgressMonitoring = async () => {
       return {
         userId: user.id,
         profileId: user.profile?.id,
+        category: user.profile?.userStatus,
         name: `${user.firstName} ${user.lastName}`,
         email: user.email,
         program,

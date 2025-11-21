@@ -33,6 +33,7 @@ enum NotificationType {
   ACTIVITY_PROGRESS
   SECURITY
   QUOTE
+  MESSAGE_APPROVED
 }
 
 enum SessionType {

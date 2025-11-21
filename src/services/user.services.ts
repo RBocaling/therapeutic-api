@@ -62,6 +62,11 @@ export const listUsersWithSurvey = async () => {
   try {
     const users = await prisma.user.findMany({
       include: {
+        profile: {
+          select: {
+            userStatus: true,
+          },
+        },
         responses: {
           include: {
             surveyForm: true,
@@ -73,7 +78,7 @@ export const listUsersWithSurvey = async () => {
 
     return users.map((u) => {
       // Map each survey response
-      const surveys = u.responses.map((r) => {
+      const surveys = u.responses.map((r: any) => {
         const score = r.score ?? null;
         const code = r.surveyForm?.code ?? "";
 
@@ -93,6 +98,7 @@ export const listUsersWithSurvey = async () => {
           status: r.status,
           resultCategory: r.resultCategory,
           dateTaken: r.createdAt,
+          category: r,
         };
       });
 
@@ -100,6 +106,8 @@ export const listUsersWithSurvey = async () => {
       const percents = surveys
         .map((s) => s.percent)
         .filter((p) => typeof p === "number") as number[];
+
+      console.log("category3", surveys);
 
       // Average percentage
       const avg =
