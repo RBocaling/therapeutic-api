@@ -3,17 +3,23 @@ import { createNotification } from "./notification.services";
 
 export const createSession = async (
   userId: number,
-  counselorId?: any,
+  counselorId?: number,
+  moderatorId?: number,
   isAIChat = false
 ) => {
   try {
     let session = await prisma.chatSession.findFirst({
-      where: { userId, counselorId: counselorId || null, isAIChat },
+      where: {
+        userId,
+        counselorId: counselorId || null,
+        moderatorId: moderatorId || null,
+        isAIChat,
+      },
     });
 
     if (!session) {
       session = await prisma.chatSession.create({
-        data: { userId, counselorId, isAIChat },
+        data: { userId, counselorId, moderatorId, isAIChat },
         include: { messages: true },
       });
     }
@@ -32,67 +38,39 @@ export const sendMessage = async (
   isFromAI = false
 ) => {
   try {
-    const message = await prisma.chatMessage.create({
+    return await prisma.chatMessage.create({
       data: { chatSessionId, senderId, content, imageUrl, isFromAI },
     });
-    return message;
   } catch (error: any) {
     throw new Error(error);
   }
 };
-
-export const listSessions = async (userId: number, isCounselor: boolean) => {
-  if (isCounselor) {
-    return await prisma.chatSession.findMany({
-      where: { counselorId: userId },
-      include: {
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            middleName: true,
-            email: true,
-            profilePic: true,
-            role: true,
-            isAccountVerified: true,
-          },
-        },
-        messages: { take: 1, orderBy: { createdAt: "desc" } },
+export const listSessions = async (
+  userId: number,
+  isCounselor: boolean,
+  isModerator: boolean
+) => {
+  return await prisma.chatSession.findMany({
+    where: {
+      OR: [
+        { userId },
+        ...(isCounselor ? [{ counselorId: userId }] : []),
+        ...(isModerator ? [{ moderatorId: userId }] : []),
+      ],
+      isAIChat: false,
+    },
+    include: {
+      user: true,
+      counselor: true,
+      moderator: true,
+      messages: {
+        orderBy: { createdAt: "asc" },
       },
-    });
-  } else {
-    const exist = await prisma.chatSession.findFirst({
-      where: {
-        userId,
-        isAIChat: true,
-      },
-    });
-    if (!exist) {
-      await prisma.chatSession.create({
-        data: { userId, isAIChat: true },
-        include: { messages: true },
-      });
-    }
-    return await prisma.chatSession.findMany({
-      where: { userId },
-      include: {
-        counselor: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            middleName: true,
-            email: true,
-            profilePic: true,
-            role: true,
-            isAccountVerified: true,
-          },
-        },
-        // messages: { take: 1, orderBy: { createdAt: "desc" } },
-      },
-    });
-  }
+    },
+    orderBy: {
+      updatedAt: "desc",
+    },
+  });
 };
 
 export const getMessages = async (
@@ -103,9 +81,15 @@ export const getMessages = async (
     const session = await prisma.chatSession.findUnique({
       where: { id: chatSessionId },
     });
+
     if (!session) throw new Error("Session not found");
-    if (session.userId !== requesterId && session.counselorId !== requesterId)
-      throw new Error("Unauthorized access");
+
+    const isAuthorized =
+      session.userId === requesterId ||
+      session.counselorId === requesterId ||
+      session.moderatorId === requesterId;
+
+    if (!isAuthorized) throw new Error("Unauthorized access");
 
     return prisma.chatMessage.findMany({
       where: { chatSessionId },
@@ -116,11 +100,10 @@ export const getMessages = async (
   }
 };
 
-//clients
 export const getCounselorClient = async (counselorId: number) => {
   try {
-    return await prisma.chatSession.findMany({
-      where: { counselorId: counselorId },
+    return prisma.chatSession.findMany({
+      where: { counselorId },
       include: {
         user: {
           include: {
@@ -136,29 +119,24 @@ export const getCounselorClient = async (counselorId: number) => {
   }
 };
 
-//chat request
-export const createChatRequest = async (userId: number, counselorId: any) => {
+export const createChatRequest = async (
+  userId: number,
+  counselorId: number
+) => {
   try {
     const findChatRequest = await prisma.chatRequest.findFirst({
       where: {
         isDeleted: false,
-        userId: Number(userId),
-        counselorId: Number(counselorId),
+        userId,
+        counselorId,
         status: { in: ["PENDING", "REJECTED"] },
       },
-      include: {
-        user: true,
-        counselor: true,
-      },
+      include: { user: true, counselor: true },
     });
-    console.log("!findChatRequest", !findChatRequest);
 
     if (!findChatRequest) {
-      return await prisma.chatRequest.create({
-        data: {
-          userId,
-          counselorId,
-        },
+      return prisma.chatRequest.create({
+        data: { userId, counselorId },
       });
     }
 
@@ -168,56 +146,50 @@ export const createChatRequest = async (userId: number, counselorId: any) => {
   }
 };
 
-export const approveChatRequest = async (id: number, status: any) => {
+export const approveChatRequest = async (
+  id: number,
+  status: any,
+  moderatorId?: number
+) => {
   try {
     const findChatRequest = await prisma.chatRequest.findUnique({
-      where: { id: Number(id), isDeleted: false },
-      include: {
-        user: true,
-        counselor: true,
-      },
+      where: { id, isDeleted: false },
+      include: { user: true, counselor: true },
     });
 
     if (!findChatRequest?.userId || !findChatRequest?.counselorId) {
       throw new Error("Request not found");
     }
 
-    // UPDATE STATUS
     const response = await prisma.chatRequest.updateMany({
-      where: { id: Number(id), isDeleted: false },
+      where: { id, isDeleted: false },
       data: { status },
     });
 
-    // ONLY WHEN APPROVED
     if (status === "APPROVED") {
-      let existSession = await prisma.chatSession.findFirst({
+      let session = await prisma.chatSession.findFirst({
         where: {
           userId: findChatRequest.userId,
           counselorId: findChatRequest.counselorId,
         },
       });
 
-      if (!existSession) {
-        existSession = await prisma.chatSession.create({
+      if (!session) {
+        session = await prisma.chatSession.create({
           data: {
             userId: findChatRequest.userId,
             counselorId: findChatRequest.counselorId,
+            moderatorId: moderatorId || null,
             isAIChat: false,
           },
         });
 
-        // INSERT DEFAULT WELCOME MESSAGE
         await prisma.chatMessage.create({
           data: {
-            chatSessionId: existSession.id,
+            chatSessionId: session.id,
             senderId: findChatRequest.counselorId,
             isFromAI: false,
-            content: `
-Hello! Your consultation request has been approved by the moderator. 
-I'm here to guide you and support your journey toward improving your health and well-being.
-
-How are you feeling today?
-            `.trim(),
+            content: `Hello! Your consultation request has been approved by the moderator. I'm here to guide you and support your journey toward improving your health and well-being.\n\nHow are you feeling today?`,
           },
         });
 
@@ -225,18 +197,28 @@ How are you feeling today?
           recipientId: findChatRequest.userId,
           type: "MESSAGE_APPROVED",
           title: "Your consultation request was approved",
-          message: `You can now start chatting with your counselor.`,
+          message: "You can now start chatting with your counselor.",
         });
 
         await createNotification({
           recipientId: findChatRequest.counselorId,
           type: "MESSAGE_APPROVED",
           title: "New consultation session assigned",
-          message: `A new student/employee has been approved and is now ready for consultation.`,
+          message:
+            "A new student/employee has been approved and is now ready for consultation.",
         });
+
+        if (moderatorId) {
+          await createNotification({
+            recipientId: moderatorId,
+            type: "MESSAGE",
+            title: "New chat session created",
+            message: "You have been added as moderator to a chat session.",
+          });
+        }
       }
 
-      return existSession;
+      return session;
     }
 
     return response;
@@ -245,29 +227,22 @@ How are you feeling today?
   }
 };
 
-
 export const getChatRequest = async () => {
   try {
-    return await prisma.chatRequest.findMany({
-      where:{isDeleted:false},
-      include: {
-        user: true,
-        counselor:true
-      },
+    return prisma.chatRequest.findMany({
+      where: { isDeleted: false },
+      include: { user: true, counselor: true },
     });
   } catch (error: any) {
     throw new Error(error);
   }
 };
 
-export const getMyChatRequest = async (userId:number) => {
+export const getMyChatRequest = async (userId: number) => {
   try {
-    return await prisma.chatRequest.findMany({
+    return prisma.chatRequest.findMany({
       where: { isDeleted: false, userId },
-      include: {
-        user: true,
-        counselor: true,
-      },
+      include: { user: true, counselor: true },
     });
   } catch (error: any) {
     throw new Error(error);

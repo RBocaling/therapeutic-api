@@ -10,7 +10,7 @@ router.post(
   authenticateUser,
   chatController.createCounselorSession
 );
-router.get("/sessions", authenticateUser, chatController.listSessions);
+router.get("/sessions", authenticateUser, chatController.listSessions as any);
 router.get(
   "/messages/:chatSessionId",
   authenticateUser,

@@ -55,9 +55,15 @@ export const generateGuidedTlc = async (userId: number, mhi38: any) => {
     const prompt = buildGuidedTlcPrompt(opts);
 
     const ai = await client.chat.completions.create({
-      model: "gpt-5",
-      messages: [{ role: "user", content: prompt }],
+      model: "gpt-4.1",
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
     });
+
 
     const json = parseAssistantJson(ai.choices[0].message?.content ?? "{}");
 

@@ -88,6 +88,7 @@ model   User {
   // Chat relations
   chatSessionsAsUser      ChatSession[]    @relation("UserChatSessions")
   chatSessionsAsCounselor ChatSession[]    @relation("CounselorChatSessions")
+  chatSessionsAsModerator ChatSession[] @relation("ModeratorChatSessions")
   chatMessagesSent        ChatMessage[]    @relation("UserMessages")
 
   // motif
@@ -268,6 +269,7 @@ model ChatSession {
   id          Int          @id @default(autoincrement())
   userId      Int
   counselorId Int?
+  moderatorId   Int?    
   isAIChat    Boolean      @default(false)
   topic       String?
   createdAt   DateTime     @default(now())
@@ -275,6 +277,7 @@ model ChatSession {
 
   user        User         @relation("UserChatSessions", fields: [userId], references: [id])
   counselor   User?        @relation("CounselorChatSessions", fields: [counselorId], references: [id])
+  moderator     User?        @relation("ModeratorChatSessions", fields: [moderatorId], references: [id])
   messages    ChatMessage[]
 }
 
