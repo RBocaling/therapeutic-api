@@ -26,9 +26,10 @@ const createPeerSupport = async (data) => {
     }
 };
 exports.createPeerSupport = createPeerSupport;
-const listPeerSupports = async () => {
+const listPeerSupports = async (id) => {
     try {
         const supports = await prisma_1.default.peerSupport.findMany({
+            where: { userId: id },
             include: {
                 user: {
                     select: {

@@ -62,9 +62,10 @@ const createPeerSupport = async (req, res) => {
     }
 };
 exports.createPeerSupport = createPeerSupport;
-const listPeerSupports = async (_req, res) => {
+const listPeerSupports = async (req, res) => {
     try {
-        const data = await peerService.listPeerSupports();
+        const userId = Number(req.user?.id);
+        const data = await peerService.listPeerSupports(userId);
         res.json({ success: true, data });
     }
     catch (error) {

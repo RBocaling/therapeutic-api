@@ -29,9 +29,10 @@ export const createPeerSupport = async (data: {
   }
 };
 
-export const listPeerSupports = async () => {
+export const listPeerSupports = async (id: number) => {
   try {
     const supports = await prisma.peerSupport.findMany({
+      where: { userId: id },
       include: {
         user: {
           select: {

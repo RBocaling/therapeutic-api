@@ -36,6 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.fetchMHI38Review = exports.markAsMarkedController = exports.acknowledgeAlertController = exports.getCriticalAlertsController = exports.getAnalyticsController = exports.createNote = exports.getAllUserProgressMonitoring = exports.getSurveyProgressController = exports.getSurveyHistoryCounselorController = exports.getSurveyHistoryController = exports.getUserSurveyResultsByAdmin = exports.getUserSurveyResults = exports.submitSurveyResponses = exports.getSurveyByCode = exports.getAllSurveys = exports.seedSurveys = void 0;
 const surveyService = __importStar(require("../services/survey.services"));
 const surveyData_1 = require("../utils/surveyData");
+const static_mhi_38_1 = require("../utils/static_mhi_38");
 const seedSurveys = async (_req, res) => {
     try {
         const data = await surveyService.seedSurveys(surveyData_1.seedAllSurveysData);
@@ -59,17 +60,38 @@ exports.getAllSurveys = getAllSurveys;
 const getSurveyByCode = async (req, res) => {
     try {
         const { code } = req.params;
+        const lang = req.query.lang || req.query.language || "english";
         const survey = await surveyService.getSurveyByCode(code);
         if (!survey)
             return res.status(404).json({ message: "Survey not found" });
+        const isFilipino = ["fil", "tagalog", "tl", "ph"].includes(lang.toLowerCase());
+        let translatedQuestions = survey.questions;
+        if (isFilipino && code === "MHI-38") {
+            translatedQuestions = survey.questions.map((q, i) => {
+                const translated = static_mhi_38_1.MHI38_TAGALOG[i];
+                if (!translated)
+                    return q;
+                const originalOptions = Array.isArray(q.options)
+                    ? q.options
+                    : q.options?.options || [];
+                const fixedOptions = originalOptions.map((opt, idx) => ({
+                    ...opt,
+                    text: translated.options.options[idx]?.text || opt.text,
+                }));
+                return {
+                    ...q,
+                    questionName: translated.questionName,
+                    options: fixedOptions,
+                };
+            });
+        }
         const cleanedSurvey = {
             ...survey,
-            questions: survey.questions.map((q) => ({
+            questions: translatedQuestions.map((q) => ({
                 ...q,
                 options: Array.isArray(q.options)
-                    ? q.options
-                    : q.options?.options?.sort((a, b) => a?.score - b?.score) ||
-                        [],
+                    ? q.options.sort((a, b) => a.score - b.score)
+                    : (q.options?.options || []).sort((a, b) => a.score - b.score),
             })),
         };
         res.json(cleanedSurvey);

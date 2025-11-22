@@ -39,9 +39,9 @@ const createGuidedTlc = async (req, res) => {
     try {
         const userId = Number(req.user?.id);
         const { score, resultCategory } = req.body;
-        if (resultCategory == "Crisis") {
-            return res.status(201).json({ success: true });
-        }
+        // if (resultCategory == "Crisis") {
+        //   return res.status(201).json({ success: true });
+        // }
         const result = await tlcService.generateGuidedTlc(userId, {
             score: Number(score),
             resultCategory,

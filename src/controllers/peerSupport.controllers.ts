@@ -30,9 +30,11 @@ export const createPeerSupport = async (req: Request, res: Response) => {
   }
 };
 
-export const listPeerSupports = async (_req: Request, res: Response) => {
+export const listPeerSupports = async (req: Request, res: Response) => {
   try {
-    const data = await peerService.listPeerSupports();
+    const userId = Number(req.user?.id);
+
+    const data = await peerService.listPeerSupports(userId);
     res.json({ success: true, data });
   } catch (error: any) {
     res.status(500).json({

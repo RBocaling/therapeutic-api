@@ -76,6 +76,11 @@ const listSchedulesForCounselor = async (counselorId) => {
                         firstName: true,
                         lastName: true,
                         profilePic: true,
+                        profile: {
+                            select: {
+                                userStatus: true,
+                            },
+                        },
                     },
                 },
             },

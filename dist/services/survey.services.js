@@ -71,15 +71,10 @@ const getAllSurveys = () => {
 };
 exports.getAllSurveys = getAllSurveys;
 const getSurveyByCode = (code) => {
-    try {
-        return prisma_1.default.surveyForm.findUnique({
-            where: { code },
-            include: { questions: { orderBy: { orderQuestion: "asc" } } },
-        });
-    }
-    catch (error) {
-        throw new Error(error);
-    }
+    return prisma_1.default.surveyForm.findUnique({
+        where: { code },
+        include: { questions: { orderBy: { orderQuestion: "asc" } } },
+    });
 };
 exports.getSurveyByCode = getSurveyByCode;
 const submitSurveyResponse = async (userId, surveyCode, answers) => {
@@ -334,6 +329,7 @@ const getAllUserProgressMonitoring = async () => {
             if (responses.length === 0) {
                 return {
                     userId: user.id,
+                    category: user.profile?.userStatus,
                     name: `${user.firstName} ${user.lastName}`,
                     email: user.email,
                     program: "No Program",
@@ -363,6 +359,7 @@ const getAllUserProgressMonitoring = async () => {
             return {
                 userId: user.id,
                 profileId: user.profile?.id,
+                category: user.profile?.userStatus,
                 name: `${user.firstName} ${user.lastName}`,
                 email: user.email,
                 program,

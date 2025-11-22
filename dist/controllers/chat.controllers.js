@@ -38,9 +38,10 @@ const chatService = __importStar(require("../services/chat.services"));
 const aiService = __importStar(require("../services/openai.services"));
 const createSession = async (req, res) => {
     try {
-        const userId = Number(req?.user?.id);
+        const isModerator = req.user?.role === "MODERATOR";
+        const creatorId = isModerator ? Number(req.user?.id) : Number(req.user?.id);
         const { counselorId, isAIChat } = req.body;
-        const session = await chatService.createSession(userId, counselorId, isAIChat);
+        const session = await chatService.createSession(creatorId, counselorId, isModerator ? creatorId : undefined, isAIChat);
         res.status(201).json({ session });
     }
     catch (err) {
@@ -50,9 +51,9 @@ const createSession = async (req, res) => {
 exports.createSession = createSession;
 const createCounselorSession = async (req, res) => {
     try {
-        const counselorId = Number(req?.user?.id);
-        const { userId } = req.body;
-        const session = await chatService.createSession(userId, counselorId, false);
+        const counselorId = Number(req.user?.id);
+        const { userId, moderatorId } = req.body;
+        const session = await chatService.createSession(userId, counselorId, moderatorId, false);
         res.status(201).json({ session });
     }
     catch (err) {
@@ -62,9 +63,9 @@ const createCounselorSession = async (req, res) => {
 exports.createCounselorSession = createCounselorSession;
 const sendMessage = async (req, res) => {
     try {
-        const userId = Number(req?.user?.id);
+        const senderId = Number(req.user?.id);
         const { chatSessionId, content, imageUrl } = req.body;
-        const message = await chatService.sendMessage(userId, chatSessionId, content, imageUrl, false);
+        const message = await chatService.sendMessage(senderId, chatSessionId, content, imageUrl, false);
         res.status(201).json({ message });
     }
     catch (err) {
@@ -74,9 +75,9 @@ const sendMessage = async (req, res) => {
 exports.sendMessage = sendMessage;
 const sendAIMessage = async (req, res) => {
     try {
-        const userId = Number(req?.user?.id);
+        const senderId = Number(req.user?.id);
         const { chatSessionId, content } = req.body;
-        const aiReply = await aiService.sendAIMessage(userId, chatSessionId, content);
+        const aiReply = await aiService.sendAIMessage(senderId, chatSessionId, content);
         res.status(200).json({ message: aiReply });
     }
     catch (err) {
@@ -86,9 +87,10 @@ const sendAIMessage = async (req, res) => {
 exports.sendAIMessage = sendAIMessage;
 const listSessions = async (req, res) => {
     try {
-        const userId = Number(req?.user?.id);
-        const isCounselor = req?.user?.role === "COUNSELOR";
-        const sessions = await chatService.listSessions(userId, isCounselor);
+        const userId = Number(req.user?.id);
+        const isCounselor = req.user?.role === "COUNSELOR";
+        const isModerator = req.user?.role === "MODERATOR";
+        const sessions = await chatService.listSessions(userId, isCounselor, isModerator);
         res.status(200).json({ sessions });
     }
     catch (err) {
@@ -99,48 +101,46 @@ exports.listSessions = listSessions;
 const getMessages = async (req, res) => {
     try {
         const chatSessionId = Number(req.params.chatSessionId);
-        const requesterId = Number(req?.user?.id);
+        const requesterId = Number(req.user?.id);
         const messages = await chatService.getMessages(chatSessionId, requesterId);
-        const messageResponse = messages?.map((item) => ({
-            ...item,
-            isMe: item?.senderId == requesterId,
+        const formatted = messages.map((m) => ({
+            ...m,
+            isMe: m.senderId === requesterId,
         }));
-        res.status(200).json({ messages: messageResponse });
+        res.status(200).json({ messages: formatted });
     }
     catch (err) {
         res.status(400).json({ message: err.message });
     }
 };
 exports.getMessages = getMessages;
-//clients
 const getCounselorClient = async (req, res) => {
     try {
-        const couselorId = Number(req?.user?.id);
-        const messages = await chatService.getCounselorClient(couselorId);
-        res.status(200).json(messages);
+        const counselorId = Number(req.user?.id);
+        const clients = await chatService.getCounselorClient(counselorId);
+        res.status(200).json(clients);
     }
     catch (err) {
         res.status(400).json({ message: err.message });
     }
 };
 exports.getCounselorClient = getCounselorClient;
-//chat request
 const createChatRequest = async (req, res) => {
     try {
-        const userId = Number(req?.user?.id);
-        const counselorId = Number(req?.body?.counselorId);
-        const messages = await chatService.createChatRequest(userId, counselorId);
-        res.status(200).json(messages);
+        const userId = Number(req.user?.id);
+        const counselorId = Number(req.body?.counselorId);
+        const result = await chatService.createChatRequest(userId, counselorId);
+        res.status(200).json(result);
     }
     catch (err) {
         res.status(400).json({ message: err.message });
     }
 };
 exports.createChatRequest = createChatRequest;
-const getChatRequest = async (req, res) => {
+const getChatRequest = async (_req, res) => {
     try {
-        const messages = await chatService.getChatRequest();
-        res.status(200).json(messages);
+        const result = await chatService.getChatRequest();
+        res.status(200).json(result);
     }
     catch (err) {
         res.status(400).json({ message: err.message });
@@ -150,8 +150,8 @@ exports.getChatRequest = getChatRequest;
 const getMyChatRequest = async (req, res) => {
     try {
         const userId = Number(req.user?.id);
-        const messages = await chatService.getMyChatRequest(userId);
-        res.status(200).json(messages);
+        const result = await chatService.getMyChatRequest(userId);
+        res.status(200).json(result);
     }
     catch (err) {
         res.status(400).json({ message: err.message });
@@ -160,9 +160,10 @@ const getMyChatRequest = async (req, res) => {
 exports.getMyChatRequest = getMyChatRequest;
 const approveChatRequest = async (req, res) => {
     try {
+        const moderatorId = req.user?.role === "MODERATOR" ? Number(req.user?.id) : undefined;
         const { id, status } = req.body;
-        const messages = await chatService.approveChatRequest(id, status);
-        res.status(200).json(messages);
+        const result = await chatService.approveChatRequest(id, status, moderatorId);
+        res.status(200).json(result);
     }
     catch (err) {
         res.status(400).json({ message: err.message });

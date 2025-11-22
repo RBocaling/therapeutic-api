@@ -66,6 +66,11 @@ const listUsersWithSurvey = async () => {
     try {
         const users = await prisma_1.default.user.findMany({
             include: {
+                profile: {
+                    select: {
+                        userStatus: true,
+                    },
+                },
                 responses: {
                     include: {
                         surveyForm: true,
@@ -94,12 +99,14 @@ const listUsersWithSurvey = async () => {
                     status: r.status,
                     resultCategory: r.resultCategory,
                     dateTaken: r.createdAt,
+                    category: r,
                 };
             });
             // Collect all valid percentages for MHI-38 only
             const percents = surveys
                 .map((s) => s.percent)
                 .filter((p) => typeof p === "number");
+            console.log("category3", surveys);
             // Average percentage
             const avg = percents.length > 0
                 ? percents.reduce((a, b) => a + b, 0) / percents.length

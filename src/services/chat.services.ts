@@ -1,4 +1,5 @@
 import prisma from "../config/prisma";
+import { sendMail } from "../utils/mailer";
 import { createNotification } from "./notification.services";
 
 export const createSession = async (
@@ -50,6 +51,42 @@ export const listSessions = async (
   isCounselor: boolean,
   isModerator: boolean
 ) => {
+  if (!isCounselor && !isModerator) {
+    const existingAI = await prisma.chatSession.findFirst({
+      where: {
+        userId,
+        isAIChat: true,
+      },
+    });
+
+    if (!existingAI) {
+      const aiSession = await prisma.chatSession.create({
+        data: {
+          userId,
+          isAIChat: true,
+          counselorId: null,
+          moderatorId: null,
+          topic: "AI Wellness Assistant",
+        },
+      });
+
+      await prisma.chatMessage.create({
+        data: {
+          chatSessionId: aiSession.id,
+          senderId: null,
+          isFromAI: true,
+          content: `Hello! I'm K.A (KeyEy) – King Alvin, your AI Wellness Companion.
+
+I'm here to help improve your emotional and mental well-being.  
+You can ask me anything about stress, anxiety, self-care, motivation,  
+or anything you want support with.
+
+How are you feeling today?`,
+        },
+      });
+    }
+  }
+
   return await prisma.chatSession.findMany({
     where: {
       OR: [
@@ -57,7 +94,6 @@ export const listSessions = async (
         ...(isCounselor ? [{ counselorId: userId }] : []),
         ...(isModerator ? [{ moderatorId: userId }] : []),
       ],
-      isAIChat: false,
     },
     include: {
       user: true,
@@ -157,8 +193,8 @@ export const approveChatRequest = async (
       include: { user: true, counselor: true },
     });
 
-    if (!findChatRequest?.userId || !findChatRequest?.counselorId) {
-      throw new Error("Request not found");
+    if (!findChatRequest?.user || !findChatRequest?.counselor) {
+      throw new Error("Request must have both user and counselor");
     }
 
     const response = await prisma.chatRequest.updateMany({
@@ -166,66 +202,113 @@ export const approveChatRequest = async (
       data: { status },
     });
 
-    if (status === "APPROVED") {
-      let session = await prisma.chatSession.findFirst({
-        where: {
-          userId: findChatRequest.userId,
-          counselorId: findChatRequest.counselorId,
+    if (status !== "APPROVED") return response;
+
+    const user = findChatRequest.user;
+    const counselor = findChatRequest.counselor;
+    const moderator = moderatorId
+      ? await prisma.user.findUnique({ where: { id: moderatorId } })
+      : null;
+
+    let session = await prisma.chatSession.findFirst({
+      where: {
+        userId: user.id,
+        counselorId: counselor.id,
+      },
+    });
+
+    if (!session) {
+      session = await prisma.chatSession.create({
+        data: {
+          userId: user.id,
+          counselorId: counselor.id,
+          moderatorId: moderatorId || null,
+          isAIChat: false,
         },
       });
 
-      if (!session) {
-        session = await prisma.chatSession.create({
-          data: {
-            userId: findChatRequest.userId,
-            counselorId: findChatRequest.counselorId,
-            moderatorId: moderatorId || null,
-            isAIChat: false,
-          },
-        });
+      await prisma.chatMessage.create({
+        data: {
+          chatSessionId: session.id,
+          senderId: counselor.id,
+          isFromAI: false,
+          content:
+            "Hello! Your consultation request has been approved by the moderator. I'm here to guide you and support your journey toward improving your well-being.\nHow are you feeling today?",
+        },
+      });
 
-        await prisma.chatMessage.create({
-          data: {
-            chatSessionId: session.id,
-            senderId: findChatRequest.counselorId,
-            isFromAI: false,
-            content: `Hello! Your consultation request has been approved by the moderator. I'm here to guide you and support your journey toward improving your health and well-being.\n\nHow are you feeling today?`,
-          },
-        });
+      await createNotification({
+        recipientId: user.id,
+        type: "MESSAGE_APPROVED",
+        title: "Your consultation was approved",
+        message: "You can now start chatting with your counselor.",
+      });
 
+      await createNotification({
+        recipientId: counselor.id,
+        type: "MESSAGE_APPROVED",
+        title: "New consultation assigned",
+        message: "A new student/employee has been assigned to you.",
+      });
+
+      if (moderatorId) {
         await createNotification({
-          recipientId: findChatRequest.userId,
-          type: "MESSAGE_APPROVED",
-          title: "Your consultation request was approved",
-          message: "You can now start chatting with your counselor.",
+          recipientId: moderatorId,
+          type: "MESSAGE",
+          title: "New chat session created",
+          message: "You have been added as moderator for a consultation.",
         });
-
-        await createNotification({
-          recipientId: findChatRequest.counselorId,
-          type: "MESSAGE_APPROVED",
-          title: "New consultation session assigned",
-          message:
-            "A new student/employee has been approved and is now ready for consultation.",
-        });
-
-        if (moderatorId) {
-          await createNotification({
-            recipientId: moderatorId,
-            type: "MESSAGE",
-            title: "New chat session created",
-            message: "You have been added as moderator to a chat session.",
-          });
-        }
       }
 
-      return session;
+      if (user.email) {
+        await sendMail(
+          user.email,
+          "Your consultation request is approved",
+          `
+          <h2>Welcome ${user.firstName}</h2>
+          <p>Congratulations! Your consultation request has been <b>approved</b> by our moderator.</p>
+          <p>Your assigned counselor is <b>${counselor.firstName} ${
+            counselor.lastName
+          }</b>.</p>
+          ${
+            moderator
+              ? `<p>Approved by Moderator: <b>${moderator.firstName} ${moderator.lastName}</b></p>`
+              : ""
+          }
+          <p>You may now start your consultation session.</p>
+          <br/>
+          <p>ASCOT AI MindCare Support</p>
+        `
+        );
+      }
+
+      if (counselor.email) {
+        await sendMail(
+          counselor.email,
+          "A new consultation has been assigned to you",
+          `
+          <h2>Hello ${counselor.firstName}</h2>
+          <p>A new consultation request has been assigned to you.</p>
+          <p>User: <b>${user.firstName} ${user.lastName}</b></p>
+          ${
+            moderator
+              ? `<p>Assigned by Moderator: <b>${moderator.firstName} ${moderator.lastName}</b></p>`
+              : ""
+          }
+          <p>Please start the consultation when you are ready.</p>
+          <br/>
+          <p>ASCOT AI MindCare Support</p>
+        `
+        );
+      }
     }
 
-    return response;
+    return session;
   } catch (error: any) {
     throw new Error(error);
   }
 };
+
 
 export const getChatRequest = async () => {
   try {
