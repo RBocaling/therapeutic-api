@@ -142,13 +142,11 @@ export const loginUser = async (
       httpOnly: true,
       secure: true,
       sameSite: "none",
-      domain: ".ascot-mentalhealthcare.site",
     });
     res.cookie("refreshToken", tokens.refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: "none",
-      domain: ".ascot-mentalhealthcare.site",
     });
 
     return user;
