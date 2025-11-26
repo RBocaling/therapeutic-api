@@ -36,13 +36,13 @@ export const register = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
   try {
-    const user = await auth.loginUser(req.body, res);
+    const user: any = await auth.loginUser(req.body, res);
     await auditService.createAudit({
       description: "Login",
       type: "LOGIN",
       userId: user?.id,
     });
-    res.status(200).json({ message: "Login successful" });
+    res.status(200).json(user);
   } catch (err: any) {
     res.status(400).json({ message: err.message });
   }
