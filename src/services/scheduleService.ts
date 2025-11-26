@@ -35,14 +35,14 @@ export const scheduleService = {
       // send notifications
       await createNotification({
         recipientId: s.userId,
-        type: "SESSION_REMINDER",
+        type: "SESSION_SCHEDULING",
         title: "Your session starts now",
         message: `Your counseling session with ${s.counselor.firstName} starts now.`,
       });
 
       await createNotification({
         recipientId: s.counselorId,
-        type: "SESSION_REMINDER",
+        type: "SESSION_SCHEDULING",
         title: "Your session starts now",
         message: `Your session with ${s.user.firstName} starts now.`,
       });

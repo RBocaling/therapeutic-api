@@ -10,6 +10,7 @@ export const createCampaign = async (
     type: "ANNOUNCEMENT" | "ARTICLE" | "EVENT";
     status?: "DRAFT" | "SCHEDULED" | "PUBLISHED" | "ARCHIVED";
     imageUrl?: string | null;
+    images?: { url: string; altText?: string }[];
     startDate?: Date | null;
     endDate?: Date | null;
     createdById: number;
@@ -33,6 +34,17 @@ export const createCampaign = async (
         audienceTags: data.audienceTags ?? null,
         createdById: data.createdById,
         isPostApproved: role === "MODERATOR" ? true : false,
+        images: data.images
+          ? {
+              create: data.images.map((i) => ({
+                url: i.url,
+                altText: i.altText ?? null,
+              })),
+            }
+          : undefined,
+      },
+      include: {
+        images: true,
       },
     });
   } catch (error) {
@@ -78,6 +90,7 @@ export const listCampaigns = async () => {
             role: true,
           },
         },
+        images: true,
         comments: {
           include: {
             user: {
@@ -133,6 +146,7 @@ export const getMyPost = async (id: number) => {
             role: true,
           },
         },
+        images: true,
         comments: {
           include: {
             user: {
@@ -188,6 +202,7 @@ export const moderatorlistCampaigns = async () => {
             role: true,
           },
         },
+        images: true,
         comments: {
           include: {
             user: {
@@ -250,6 +265,7 @@ export const MyPendingPendingCampaigns = async (id: number) => {
             role: true,
           },
         },
+        images: true,
         comments: {
           include: {
             user: {
@@ -306,6 +322,7 @@ export const counselorlistCampaigns = async () => {
             role: true,
           },
         },
+        images: true,
         comments: {
           include: {
             user: {
@@ -362,6 +379,7 @@ export const getCampaignById = async (id: number) => {
             email: true,
           },
         },
+        images: true,
         comments: {
           include: {
             user: {
@@ -511,6 +529,7 @@ export const updateCampaign = async (
     startDate: Date | null;
     endDate: Date | null;
     isAnonymous: boolean;
+    images: { url: string; altText?: string }[];
   }>
 ) => {
   try {
@@ -531,12 +550,25 @@ export const updateCampaign = async (
         startDate: data.startDate ?? campaign.startDate,
         endDate: data.endDate ?? campaign.endDate,
         isAnonymous: data.isAnonymous ?? campaign.isAnonymous,
+        images: data.images
+          ? {
+              deleteMany: {},
+              create: data.images.map((i) => ({
+                url: i.url,
+                altText: i.altText ?? null,
+              })),
+            }
+          : undefined,
+      },
+      include: {
+        images: true,
       },
     });
   } catch (error) {
     throw new Error(`Failed to update campaign: ${error}`);
   }
 };
+
 
 export const deleteContentPost = async (id?: number) => {
   try {

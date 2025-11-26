@@ -1,3 +1,4 @@
+import { profile } from "console";
 import prisma from "../config/prisma";
 
 export const getUserUserInfo = async (userId: number) => {
@@ -49,10 +50,20 @@ export const listUsers = async () => {
         profilePic: true,
         createdAt: true,
         updatedAt: true,
+        profile: {
+          select: {
+            userStatus: true,
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
     });
-    return users;
+
+    const user = users?.map((item: any) => ({
+      ...item,
+      category: item?.profile?.userStatus,
+    }));
+    return user;
   } catch (error: any) {
     throw new Error(error);
   }
@@ -135,9 +146,6 @@ export const listUsersWithSurvey = async () => {
     throw new Error(error);
   }
 };
-
-
-
 
 export const getUserById = async (id: number) => {
   try {

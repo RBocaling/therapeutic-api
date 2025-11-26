@@ -170,7 +170,7 @@ export const createChatRequest = async (
       include: { user: true, counselor: true },
     });
 
-    if (!findChatRequest) {
+    if (findChatRequest) {
       return prisma.chatRequest.create({
         data: { userId, counselorId },
       });
@@ -185,7 +185,8 @@ export const createChatRequest = async (
 export const approveChatRequest = async (
   id: number,
   status: any,
-  moderatorId?: number
+  moderatorId?: number,
+  reason?: string
 ) => {
   try {
     const findChatRequest = await prisma.chatRequest.findUnique({
@@ -199,7 +200,7 @@ export const approveChatRequest = async (
 
     const response = await prisma.chatRequest.updateMany({
       where: { id, isDeleted: false },
-      data: { status },
+      data: { status, reason },
     });
 
     if (status !== "APPROVED") return response;

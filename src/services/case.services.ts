@@ -3,9 +3,9 @@ import { CaseIntervention } from "./../../node_modules/.prisma/client/index.d";
 import prisma from "../config/prisma";
 
 export const createCase = async (
-  userId: number,
+  counselorId: number,
   data: {
-    counselorId: number;
+    userId: number;
     category: "STUDENT" | "EMPLOYEE";
     title: string;
     description?: string;
@@ -16,8 +16,8 @@ export const createCase = async (
   return await prisma.$transaction(async (tx) => {
     const created = await tx.caseManagement.create({
       data: {
-        userId,
-        counselorId: data.counselorId,
+        userId: data?.userId,
+        counselorId,
         category: data.category,
         title: data.title,
         description: data.description,

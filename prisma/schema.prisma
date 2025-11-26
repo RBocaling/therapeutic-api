@@ -372,6 +372,16 @@ model AwarenessCampaign {
   feedbacks     Feedback[]
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt 
+   images        AwarenessCampaignImage[]
+}
+model AwarenessCampaignImage {
+  id           Int                @id @default(autoincrement())
+  campaignId   Int
+  url          String             @db.Text      // image link
+  altText      String?            // optional description for accessibility
+  createdAt    DateTime           @default(now())
+
+  campaign     AwarenessCampaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 }
 
 model Comment {
@@ -810,6 +820,7 @@ model ChatRequest {
   userId       Int
   counselorId  Int?
   message      String? @db.Text
+  reason      String? @db.Text
   status       ChatRequestStatus @default(PENDING)
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt

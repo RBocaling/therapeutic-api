@@ -15,6 +15,7 @@ export const createCampaign = async (req: Request, res: Response) => {
       type,
       status,
       imageUrl,
+      images,
       startDate,
       endDate,
       audienceTags,
@@ -29,6 +30,7 @@ export const createCampaign = async (req: Request, res: Response) => {
       type,
       status,
       imageUrl,
+      images,
       startDate: startDate ? new Date(startDate) : null,
       endDate: endDate ? new Date(endDate) : null,
       createdById,
@@ -206,6 +208,7 @@ export const updateCampaign = async (req: Request, res: Response) => {
       startDate: body.startDate ? new Date(body.startDate) : null,
       endDate: body.endDate ? new Date(body.endDate) : null,
       isAnonymous: body.isAnonymous,
+      images: body.images,
     });
 
     res.status(200).json({ success: true, data: updated });
@@ -213,6 +216,7 @@ export const updateCampaign = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 export const deleteContentPost = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
