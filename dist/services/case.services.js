@@ -6,12 +6,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteSingleIntervention = exports.getCaseIntervention = exports.createCaseIntervention = exports.updateCaseStatus = exports.getCaseById = exports.getAllCases = exports.createCase = void 0;
 // src/services/case.services.ts
 const prisma_1 = __importDefault(require("../config/prisma"));
-const createCase = async (userId, data) => {
+const createCase = async (counselorId, data) => {
     return await prisma_1.default.$transaction(async (tx) => {
         const created = await tx.caseManagement.create({
             data: {
-                userId,
-                counselorId: data.counselorId,
+                userId: data?.userId,
+                counselorId,
                 category: data.category,
                 title: data.title,
                 description: data.description,

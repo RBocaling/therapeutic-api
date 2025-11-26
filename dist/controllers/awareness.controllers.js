@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteContentPost = exports.updateCampaign = exports.listFeedbacks = exports.submitFeedback = exports.addComment = exports.getCampaignById = exports.counselorListCampaigns = exports.pendingListCampaigns = exports.moderatorCampaigns = exports.getMyPost = exports.listCampaigns = exports.updateCampaignPostApprove = exports.updateCampaignStatus = exports.createCampaign = void 0;
+exports.deleteContentPost = exports.updateCampaign = exports.listFeedbacks = exports.submitFeedback = exports.addComment = exports.getCampaignById = exports.counselorListCampaigns = exports.pendingListCampaigns = exports.moderatorCampaigns = exports.getMyPost = exports.listCampaignsAll = exports.listCampaigns = exports.updateCampaignPostApprove = exports.updateCampaignStatus = exports.createCampaign = void 0;
 const campaignService = __importStar(require("../services/awareness.services"));
 const auditService = __importStar(require("../services/audit.services"));
 const createCampaign = async (req, res) => {
@@ -42,7 +42,7 @@ const createCampaign = async (req, res) => {
         if (!createdById) {
             return res.status(401).json({ success: false, message: "Unauthorized" });
         }
-        const { title, content, type, status, imageUrl, startDate, endDate, audienceTags, isAnonymous, } = req.body;
+        const { title, content, type, status, imageUrl, images, startDate, endDate, audienceTags, isAnonymous, } = req.body;
         const data = await campaignService.createCampaign(req?.user?.role, {
             isAnonymous,
             title,
@@ -51,6 +51,7 @@ const createCampaign = async (req, res) => {
             type,
             status,
             imageUrl,
+            images,
             startDate: startDate ? new Date(startDate) : null,
             endDate: endDate ? new Date(endDate) : null,
             createdById,
@@ -107,6 +108,16 @@ const listCampaigns = async (_req, res) => {
     }
 };
 exports.listCampaigns = listCampaigns;
+const listCampaignsAll = async (_req, res) => {
+    try {
+        const campaigns = await campaignService.listCampaignsAll();
+        res.json(campaigns);
+    }
+    catch (error) {
+        res.status(500).json(error.message);
+    }
+};
+exports.listCampaignsAll = listCampaignsAll;
 const getMyPost = async (req, res) => {
     try {
         const campaigns = await campaignService.getMyPost(Number(req?.user?.id));
@@ -232,6 +243,7 @@ const updateCampaign = async (req, res) => {
             startDate: body.startDate ? new Date(body.startDate) : null,
             endDate: body.endDate ? new Date(body.endDate) : null,
             isAnonymous: body.isAnonymous,
+            images: body.images,
         });
         res.status(200).json({ success: true, data: updated });
     }

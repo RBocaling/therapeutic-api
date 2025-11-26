@@ -19,6 +19,7 @@ export const addAdmin = async (data: any) => {
         password: hashedPassword,
         role: "ADMIN",
         profilePic: data.profilePic ?? null,
+        isAccountVerified: true,
       },
     });
 
@@ -46,6 +47,7 @@ export const addModerator = async (data: any) => {
         password: hashedPassword,
         role: "MODERATOR",
         profilePic: data.profilePic ?? null,
+        isAccountVerified: true,
       },
     });
 
@@ -74,6 +76,7 @@ export const addCounselor = async (data: any) => {
           password: hashedPassword,
           role: "COUNSELOR",
           profilePic: data.profilePic ?? null,
+          isAccountVerified: true,
         },
       });
 

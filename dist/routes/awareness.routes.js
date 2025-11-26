@@ -39,6 +39,7 @@ const campaignController = __importStar(require("../controllers/awareness.contro
 const router = (0, express_1.Router)();
 router.post("/", auth_middleware_1.authenticateUser, campaignController.createCampaign);
 router.get("/", auth_middleware_1.authenticateUser, campaignController.listCampaigns);
+router.get("/v2", auth_middleware_1.authenticateUser, campaignController.listCampaignsAll);
 router.get("/get-my-content", auth_middleware_1.authenticateUser, campaignController.getMyPost);
 router.get("/moderator-post", auth_middleware_1.authenticateUser, campaignController.moderatorCampaigns);
 router.get("/user-request", auth_middleware_1.authenticateUser, campaignController.counselorListCampaigns);

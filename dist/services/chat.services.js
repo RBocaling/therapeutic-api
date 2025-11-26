@@ -146,7 +146,7 @@ const createChatRequest = async (userId, counselorId) => {
                 isDeleted: false,
                 userId,
                 counselorId,
-                status: { in: ["PENDING", "REJECTED"] },
+                status: { in: ["PENDING", "APPROVED"] },
             },
             include: { user: true, counselor: true },
         });
@@ -162,7 +162,7 @@ const createChatRequest = async (userId, counselorId) => {
     }
 };
 exports.createChatRequest = createChatRequest;
-const approveChatRequest = async (id, status, moderatorId) => {
+const approveChatRequest = async (id, status, moderatorId, reason) => {
     try {
         const findChatRequest = await prisma_1.default.chatRequest.findUnique({
             where: { id, isDeleted: false },
@@ -173,7 +173,7 @@ const approveChatRequest = async (id, status, moderatorId) => {
         }
         const response = await prisma_1.default.chatRequest.updateMany({
             where: { id, isDeleted: false },
-            data: { status },
+            data: { status, reason },
         });
         if (status !== "APPROVED")
             return response;

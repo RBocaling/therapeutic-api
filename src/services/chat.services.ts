@@ -165,12 +165,12 @@ export const createChatRequest = async (
         isDeleted: false,
         userId,
         counselorId,
-        status: { in: ["PENDING", "REJECTED"] },
+        status: { in: ["PENDING", "APPROVED"] },
       },
       include: { user: true, counselor: true },
     });
 
-    if (findChatRequest) {
+    if (!findChatRequest) {
       return prisma.chatRequest.create({
         data: { userId, counselorId },
       });

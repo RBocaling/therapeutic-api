@@ -52,10 +52,15 @@ const listUsers = async () => {
                 profilePic: true,
                 createdAt: true,
                 updatedAt: true,
+                profile: true,
             },
             orderBy: { createdAt: "desc" },
         });
-        return users;
+        const user = users?.map((item) => ({
+            ...item,
+            category: item?.profile?.userStatus,
+        }));
+        return user;
     }
     catch (error) {
         throw new Error(error);

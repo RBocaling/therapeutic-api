@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteContentPost = exports.updateCampaign = exports.listFeedbacks = exports.submitFeedback = exports.addComment = exports.getCampaignById = exports.counselorlistCampaigns = exports.MyPendingPendingCampaigns = exports.moderatorlistCampaigns = exports.getMyPost = exports.listCampaigns = exports.updateCampaignIsPostApproved = exports.updateCampaignStatus = exports.createCampaign = void 0;
+exports.deleteContentPost = exports.updateCampaign = exports.listFeedbacks = exports.submitFeedback = exports.addComment = exports.getCampaignById = exports.counselorlistCampaigns = exports.MyPendingPendingCampaigns = exports.moderatorlistCampaigns = exports.getMyPost = exports.listCampaignsAll = exports.listCampaigns = exports.updateCampaignIsPostApproved = exports.updateCampaignStatus = exports.createCampaign = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 const createCampaign = async (role, data) => {
     try {
@@ -23,6 +23,17 @@ const createCampaign = async (role, data) => {
                 audienceTags: data.audienceTags ?? null,
                 createdById: data.createdById,
                 isPostApproved: role === "MODERATOR" ? true : false,
+                images: data.images
+                    ? {
+                        create: data.images.map((i) => ({
+                            url: i.url,
+                            altText: i.altText ?? null,
+                        })),
+                    }
+                    : undefined,
+            },
+            include: {
+                images: true,
             },
         });
     }
@@ -69,6 +80,7 @@ const listCampaigns = async () => {
                         role: true,
                     },
                 },
+                images: true,
                 comments: {
                     include: {
                         user: {
@@ -112,6 +124,65 @@ const listCampaigns = async () => {
     }
 };
 exports.listCampaigns = listCampaigns;
+const listCampaignsAll = async () => {
+    try {
+        const response = await prisma_1.default.awarenessCampaign.findMany({
+            where: { isDeleted: false },
+            include: {
+                createdBy: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        profilePic: true,
+                        role: true,
+                    },
+                },
+                images: true,
+                comments: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true,
+                                middleName: true,
+                                suffix: true,
+                                email: true,
+                                profilePic: true,
+                            },
+                        },
+                    },
+                },
+                feedbacks: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true,
+                                middleName: true,
+                                suffix: true,
+                                email: true,
+                                profilePic: true,
+                            },
+                        },
+                    },
+                },
+            },
+            orderBy: { createdAt: "desc" },
+        });
+        return response?.map((item) => ({
+            ...item,
+            createdBy: item?.isAnonymous ? "Anonymous" : item?.createdBy,
+            createdByRole: item?.createdBy?.role,
+        }));
+    }
+    catch (error) {
+        throw new Error(`Failed to fetch campaigns: ${error}`);
+    }
+};
+exports.listCampaignsAll = listCampaignsAll;
 const getMyPost = async (id) => {
     try {
         const response = await prisma_1.default.awarenessCampaign.findMany({
@@ -126,6 +197,7 @@ const getMyPost = async (id) => {
                         role: true,
                     },
                 },
+                images: true,
                 comments: {
                     include: {
                         user: {
@@ -183,6 +255,7 @@ const moderatorlistCampaigns = async () => {
                         role: true,
                     },
                 },
+                images: true,
                 comments: {
                     include: {
                         user: {
@@ -243,6 +316,7 @@ const MyPendingPendingCampaigns = async (id) => {
                         role: true,
                     },
                 },
+                images: true,
                 comments: {
                     include: {
                         user: {
@@ -300,6 +374,7 @@ const counselorlistCampaigns = async () => {
                         role: true,
                     },
                 },
+                images: true,
                 comments: {
                     include: {
                         user: {
@@ -357,6 +432,7 @@ const getCampaignById = async (id) => {
                         email: true,
                     },
                 },
+                images: true,
                 comments: {
                     include: {
                         user: {
@@ -504,6 +580,18 @@ const updateCampaign = async (id, data) => {
                 startDate: data.startDate ?? campaign.startDate,
                 endDate: data.endDate ?? campaign.endDate,
                 isAnonymous: data.isAnonymous ?? campaign.isAnonymous,
+                images: data.images
+                    ? {
+                        deleteMany: {},
+                        create: data.images.map((i) => ({
+                            url: i.url,
+                            altText: i.altText ?? null,
+                        })),
+                    }
+                    : undefined,
+            },
+            include: {
+                images: true,
             },
         });
     }

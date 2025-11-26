@@ -22,6 +22,7 @@ const addAdmin = async (data) => {
                 password: hashedPassword,
                 role: "ADMIN",
                 profilePic: data.profilePic ?? null,
+                isAccountVerified: true,
             },
         });
         return admin;
@@ -47,6 +48,7 @@ const addModerator = async (data) => {
                 password: hashedPassword,
                 role: "MODERATOR",
                 profilePic: data.profilePic ?? null,
+                isAccountVerified: true,
             },
         });
         return moderator;
@@ -73,6 +75,7 @@ const addCounselor = async (data) => {
                     password: hashedPassword,
                     role: "COUNSELOR",
                     profilePic: data.profilePic ?? null,
+                    isAccountVerified: true,
                 },
             });
             const counselorProfile = await tx.counselorProfile.create({

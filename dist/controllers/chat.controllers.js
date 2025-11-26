@@ -161,8 +161,8 @@ exports.getMyChatRequest = getMyChatRequest;
 const approveChatRequest = async (req, res) => {
     try {
         const moderatorId = req.user?.role === "MODERATOR" ? Number(req.user?.id) : undefined;
-        const { id, status } = req.body;
-        const result = await chatService.approveChatRequest(id, status, moderatorId);
+        const { id, status, reason } = req.body;
+        const result = await chatService.approveChatRequest(id, status, moderatorId, reason);
         res.status(200).json(result);
     }
     catch (err) {

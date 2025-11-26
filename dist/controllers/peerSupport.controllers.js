@@ -65,7 +65,7 @@ exports.createPeerSupport = createPeerSupport;
 const listPeerSupports = async (req, res) => {
     try {
         const userId = Number(req.user?.id);
-        const data = await peerService.listPeerSupports(userId);
+        const data = await peerService.listPeerSupports(userId, req?.user?.role);
         res.json({ success: true, data });
     }
     catch (error) {

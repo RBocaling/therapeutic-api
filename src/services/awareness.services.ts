@@ -183,6 +183,7 @@ export const listCampaignsAll = async () => {
     return response?.map((item: any) => ({
       ...item,
       createdBy: item?.isAnonymous ? "Anonymous" : item?.createdBy,
+      createdByRole: item?.createdBy?.role,
     }));
   } catch (error) {
     throw new Error(`Failed to fetch campaigns: ${error}`);

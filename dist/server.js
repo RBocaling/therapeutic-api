@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const app_1 = __importDefault(require("./app"));
+require("./cron/scheduler");
 const PORT = process.env.PORT || 8000;
 app_1.default.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
