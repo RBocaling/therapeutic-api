@@ -144,7 +144,7 @@ export const loginUser = async (
       httpOnly: true,
       secure: true,
       sameSite: "none",
-      domain: ".therapeutic-health.site",
+      domain: ".ascot-mentalhealthcare.site",
       path: "/",
     });
 
@@ -152,7 +152,7 @@ export const loginUser = async (
       httpOnly: true,
       secure: true,
       sameSite: "none",
-      domain: ".therapeutic-health.site",
+      domain: ".ascot-mentalhealthcare.site",
       path: "/",
     });
 
