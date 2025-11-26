@@ -29,24 +29,45 @@ export const createPeerSupport = async (data: {
   }
 };
 
-export const listPeerSupports = async (id: number) => {
+export const listPeerSupports = async (id: number, role: any) => {
   try {
-    const supports = await prisma.peerSupport.findMany({
-      where: { userId: id },
-      include: {
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            role: true,
-            profilePic: true,
+    let supports = null;
+    console.log("role", role);
+
+    if (role == "USER") {
+      supports = await prisma.peerSupport.findMany({
+        where: { userId: id },
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              role: true,
+              profilePic: true,
+            },
           },
+          messages: true,
         },
-        messages: true,
-      },
-      orderBy: { createdAt: "desc" },
-    });
+        orderBy: { createdAt: "desc" },
+      });
+    } else {
+      supports = await prisma.peerSupport.findMany({
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              role: true,
+              profilePic: true,
+            },
+          },
+          messages: true,
+        },
+        orderBy: { createdAt: "desc" },
+      });
+    }
     return supports;
   } catch (error: any) {
     throw new Error(`Failed to list peer supports: ${error.message}`);

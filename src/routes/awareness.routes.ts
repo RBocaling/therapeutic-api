@@ -6,6 +6,7 @@ const router = Router();
 
 router.post("/", authenticateUser, campaignController.createCampaign as any);
 router.get("/", authenticateUser, campaignController.listCampaigns);
+router.get("/v2", authenticateUser, campaignController.listCampaignsAll);
 router.get("/get-my-content", authenticateUser, campaignController.getMyPost);
 router.get(
   "/moderator-post",
