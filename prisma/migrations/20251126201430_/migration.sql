@@ -144,6 +144,7 @@ CREATE TABLE `ChatSession` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `userId` INTEGER NOT NULL,
     `counselorId` INTEGER NULL,
+    `moderatorId` INTEGER NULL,
     `isAIChat` BOOLEAN NOT NULL DEFAULT false,
     `topic` VARCHAR(191) NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -169,7 +170,7 @@ CREATE TABLE `ChatMessage` (
 CREATE TABLE `Notification` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `recipientId` INTEGER NOT NULL,
-    `type` ENUM('KYC_VERIFIED', 'ACCOUNT_VERIFIED', 'MESSAGE', 'SESSION_SCHEDULING', 'REFERRAL', 'ACTIVITY_PROGRESS', 'SECURITY', 'QUOTE') NOT NULL,
+    `type` ENUM('KYC_VERIFIED', 'ACCOUNT_VERIFIED', 'MESSAGE', 'SESSION_SCHEDULING', 'REFERRAL', 'ACTIVITY_PROGRESS', 'SECURITY', 'QUOTE', 'MESSAGE_APPROVED') NOT NULL,
     `title` VARCHAR(191) NOT NULL,
     `message` TEXT NULL,
     `isRead` BOOLEAN NOT NULL DEFAULT false,
@@ -219,6 +220,17 @@ CREATE TABLE `AwarenessCampaign` (
     `createdById` INTEGER NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `AwarenessCampaignImage` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `campaignId` INTEGER NOT NULL,
+    `url` TEXT NOT NULL,
+    `altText` VARCHAR(191) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -558,6 +570,7 @@ CREATE TABLE `CaseManagement` (
     `title` VARCHAR(191) NOT NULL,
     `description` TEXT NULL,
     `status` ENUM('OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED') NOT NULL DEFAULT 'OPEN',
+    `intervention` VARCHAR(191) NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
@@ -570,6 +583,32 @@ CREATE TABLE `CaseEvidence` (
     `caseId` INTEGER NOT NULL,
     `imageUrl` TEXT NOT NULL,
     `uploadedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `CaseIntervention` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `intervention` VARCHAR(191) NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    UNIQUE INDEX `CaseIntervention_intervention_key`(`intervention`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `ChatRequest` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `userId` INTEGER NOT NULL,
+    `counselorId` INTEGER NULL,
+    `message` TEXT NULL,
+    `reason` TEXT NULL,
+    `status` ENUM('PENDING', 'APPROVED', 'REJECTED', 'CANCELLED') NOT NULL DEFAULT 'PENDING',
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+    `isDeleted` BOOLEAN NOT NULL DEFAULT false,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -605,6 +644,9 @@ ALTER TABLE `ChatSession` ADD CONSTRAINT `ChatSession_userId_fkey` FOREIGN KEY (
 ALTER TABLE `ChatSession` ADD CONSTRAINT `ChatSession_counselorId_fkey` FOREIGN KEY (`counselorId`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE `ChatSession` ADD CONSTRAINT `ChatSession_moderatorId_fkey` FOREIGN KEY (`moderatorId`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE `ChatMessage` ADD CONSTRAINT `ChatMessage_chatSessionId_fkey` FOREIGN KEY (`chatSessionId`) REFERENCES `ChatSession`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -621,6 +663,9 @@ ALTER TABLE `SessionSchedule` ADD CONSTRAINT `SessionSchedule_userId_fkey` FOREI
 
 -- AddForeignKey
 ALTER TABLE `AwarenessCampaign` ADD CONSTRAINT `AwarenessCampaign_createdById_fkey` FOREIGN KEY (`createdById`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `AwarenessCampaignImage` ADD CONSTRAINT `AwarenessCampaignImage_campaignId_fkey` FOREIGN KEY (`campaignId`) REFERENCES `AwarenessCampaign`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Comment` ADD CONSTRAINT `Comment_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -720,3 +765,9 @@ ALTER TABLE `CaseManagement` ADD CONSTRAINT `CaseManagement_counselorId_fkey` FO
 
 -- AddForeignKey
 ALTER TABLE `CaseEvidence` ADD CONSTRAINT `CaseEvidence_caseId_fkey` FOREIGN KEY (`caseId`) REFERENCES `CaseManagement`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `ChatRequest` ADD CONSTRAINT `ChatRequest_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `ChatRequest` ADD CONSTRAINT `ChatRequest_counselorId_fkey` FOREIGN KEY (`counselorId`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
