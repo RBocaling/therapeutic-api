@@ -142,12 +142,17 @@ export const loginUser = async (
       httpOnly: true,
       secure: true,
       sameSite: "none",
+      domain: ".therapeutic-health.site",
+      path: "/",
     });
     res.cookie("refreshToken", tokens.refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: "none",
+      domain: ".therapeutic-health.site",
+      path: "/",
     });
+
 
     return user;
   } catch (err: any) {
