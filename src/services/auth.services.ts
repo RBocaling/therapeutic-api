@@ -130,39 +130,28 @@ export const loginUser = async (
         profile: { select: { id: true } },
       },
     });
-
     if (!user?.password || !user) throw new Error("User not found.");
 
-    const valid = await argon2.verify(user.password, password);
+    const valid = await argon2.verify(user?.password, password);
     if (!valid) throw new Error("Invalid credentials.");
     if (user.role === "USER" && !user.isAccountVerified)
       throw new Error("Account not verified.");
 
     const tokens = generateTokens(user);
-
     res.cookie("accessToken", tokens.accessToken, {
       httpOnly: true,
       secure: true,
       sameSite: "none",
-      domain: ".ascot-mentalhealthcare.site",
-      path: "/",
     });
-
     res.cookie("refreshToken", tokens.refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: "none",
-      domain: ".ascot-mentalhealthcare.site",
-      path: "/",
     });
 
-    // FINAL FIX: Send response here
-    return res.status(200).json({
-      message: "Login successful",
-      user,
-    });
+    return user;
   } catch (err: any) {
-    return res.status(400).json({ message: err.message || "Login failed." });
+    throw new Error(err.message || "Login failed.");
   }
 };
 
