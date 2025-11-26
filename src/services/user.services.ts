@@ -50,11 +50,7 @@ export const listUsers = async () => {
         profilePic: true,
         createdAt: true,
         updatedAt: true,
-        profile: {
-          select: {
-            userStatus: true,
-          },
-        },
+        profile: true,
       },
       orderBy: { createdAt: "desc" },
     });
