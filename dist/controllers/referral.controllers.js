@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteReferralController = exports.updateReferralController = exports.getReferralController = exports.listReferralsController = exports.createReferralController = void 0;
+exports.deleteReferralController = exports.updateReferralController = exports.getReferralController = exports.listAvailReferralsController = exports.listReferralsController = exports.createReferralController = void 0;
 const ref = __importStar(require("../services/referral.services"));
 const createReferralController = async (req, res) => {
     try {
@@ -79,6 +79,16 @@ const listReferralsController = async (req, res) => {
     }
 };
 exports.listReferralsController = listReferralsController;
+const listAvailReferralsController = async (req, res) => {
+    try {
+        const referrals = await ref.listAvailReferrals(Number(req?.user?.id));
+        res.json(referrals);
+    }
+    catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+exports.listAvailReferralsController = listAvailReferralsController;
 const getReferralController = async (req, res) => {
     try {
         const id = Number(req.params.id);

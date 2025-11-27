@@ -111,7 +111,6 @@ const listUsersWithSurvey = async () => {
             const percents = surveys
                 .map((s) => s.percent)
                 .filter((p) => typeof p === "number");
-            console.log("category3", surveys);
             // Average percentage
             const avg = percents.length > 0
                 ? percents.reduce((a, b) => a + b, 0) / percents.length

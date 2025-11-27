@@ -139,6 +139,7 @@ exports.getUserSurveyResultsByAdmin = getUserSurveyResultsByAdmin;
 const getSurveyHistoryController = async (req, res) => {
     try {
         const userProfileId = Number(req.user?.profile?.id);
+        console.log("sdsdsdsds", req.user);
         const data = await surveyService.getSurveyHistory(userProfileId);
         res.status(200).json(data);
     }

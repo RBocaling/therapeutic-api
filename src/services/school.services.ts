@@ -80,7 +80,6 @@ export const listCoursesBySchool = async (schoolId: number) => {
     });
     if (!school) throw new Error("School not found");
 
-    console.log("school.courses", school.courses);
 
     return school.courses;
   } catch (error: any) {

@@ -32,7 +32,6 @@ export const createPeerSupport = async (data: {
 export const listPeerSupports = async (id: number, role: any) => {
   try {
     let supports = null;
-    console.log("role", role);
 
     if (role == "USER") {
       supports = await prisma.peerSupport.findMany({

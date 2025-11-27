@@ -11,6 +11,8 @@ import { verifyGoogleToken } from "../utils/googleClient";
 export const googleAuthService = async (token: string, res: Response) => {
   try {
     let googleUser: any;
+
+    // Detect token type
     if (token.startsWith("ya29.")) {
       const response = await fetch(
         "https://www.googleapis.com/oauth2/v3/userinfo",
@@ -25,10 +27,19 @@ export const googleAuthService = async (token: string, res: Response) => {
       if (!googleUser?.email) throw new Error("Invalid Google ID token.");
     }
 
+    // Find existing user with selected fields
     let user = await prisma.user.findUnique({
       where: { email: googleUser.email },
-    });
+      select: {
+        id: true,
+        password: true,
+        role: true,
+        isAccountVerified: true,
+        profile: { select: { id: true } },
+      },
+    }) as any;
 
+    // Create user if not exists
     if (!user) {
       user = await prisma.user.create({
         data: {
@@ -39,19 +50,25 @@ export const googleAuthService = async (token: string, res: Response) => {
           googleId: googleUser.sub,
           profile: { create: { userStatus: "STUDENT" } },
         },
+        select: {
+          id: true,
+          password: true,
+          role: true,
+          isAccountVerified: true,
+          profile: { select: { id: true } },
+        },
       });
     } else if (!user.googleId) {
+      // Update googleId if missing
       await prisma.user.update({
         where: { id: user.id },
         data: { googleId: googleUser.sub },
       });
     }
 
-    const tokens = generateTokens({
-      id: user.id,
-      email: user.email,
-      role: user.role,
-    });
+    // Generate tokens using same object shape as loginUser
+    const tokens = generateTokens(user);
+
     res.cookie("accessToken", tokens.accessToken, {
       httpOnly: true,
       secure: true,
@@ -68,6 +85,7 @@ export const googleAuthService = async (token: string, res: Response) => {
     throw new Error(error.message || "Google authentication failed.");
   }
 };
+
 
 // manualll
 export const registerUser = async (data: any) => {

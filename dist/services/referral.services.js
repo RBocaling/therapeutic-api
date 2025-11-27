@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteReferral = exports.updateReferral = exports.getReferralById = exports.listReferrals = exports.createReferral = void 0;
+exports.deleteReferral = exports.updateReferral = exports.getReferralById = exports.listReferrals = exports.listAvailReferrals = exports.createReferral = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 const notification_services_1 = require("./notification.services");
 const createReferral = async (payload) => {
@@ -81,6 +81,38 @@ const createReferral = async (payload) => {
     }
 };
 exports.createReferral = createReferral;
+const listAvailReferrals = async (id) => {
+    try {
+        const users = await prisma_1.default.referral.findMany({
+            where: { counselorId: id },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                        role: true,
+                        isAccountVerified: true,
+                        profilePic: true,
+                        createdAt: true,
+                        updatedAt: true,
+                        profile: true,
+                    },
+                },
+            },
+        });
+        // const user = users?.user?.map((item: any) => ({
+        //   ...item,
+        //   category: item?.profile?.userStatus,
+        // }));
+        return users?.map((item) => item?.user);
+    }
+    catch (error) {
+        throw new Error(error.message || "Failed to list referrals");
+    }
+};
+exports.listAvailReferrals = listAvailReferrals;
 const listReferrals = async (id, role) => {
     const where = {};
     if (role === "USER")

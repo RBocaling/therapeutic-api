@@ -7,19 +7,34 @@ exports.getMyChatRequest = exports.getChatRequest = exports.approveChatRequest =
 const prisma_1 = __importDefault(require("../config/prisma"));
 const mailer_1 = require("../utils/mailer");
 const notification_services_1 = require("./notification.services");
-const createSession = async (userId, counselorId, moderatorId, isAIChat = false) => {
+const createSession = async (creatorId, counselorId, moderatorId, isAIChat = false) => {
     try {
         let session = await prisma_1.default.chatSession.findFirst({
             where: {
-                userId,
-                counselorId: counselorId || null,
-                moderatorId: moderatorId || null,
                 isAIChat,
+                userId: moderatorId ? undefined : creatorId,
+                counselorId: counselorId ?? undefined,
+                moderatorId: moderatorId ?? undefined,
             },
         });
         if (!session) {
+            const data = {
+                isAIChat,
+            };
+            if (moderatorId) {
+                data.moderatorId = moderatorId;
+                if (counselorId)
+                    data.counselorId = counselorId;
+                data.userId = undefined; // Prisma requires number, but we intentionally leave user empty
+            }
+            else {
+                data.userId = creatorId;
+                if (counselorId)
+                    data.counselorId = counselorId;
+                data.moderatorId = undefined; // Prisma requires number, but we intentionally leave moderator empty
+            }
             session = await prisma_1.default.chatSession.create({
-                data: { userId, counselorId, moderatorId, isAIChat },
+                data,
                 include: { messages: true },
             });
         }
@@ -78,9 +93,9 @@ How are you feeling today?`,
     return await prisma_1.default.chatSession.findMany({
         where: {
             OR: [
-                { userId },
-                ...(isCounselor ? [{ counselorId: userId }] : []),
                 ...(isModerator ? [{ moderatorId: userId }] : []),
+                ...(isCounselor ? [{ counselorId: userId }] : []),
+                ...(!isCounselor && !isModerator ? [{ userId }] : []),
             ],
         },
         include: {
@@ -165,23 +180,20 @@ exports.createChatRequest = createChatRequest;
 const approveChatRequest = async (id, status, moderatorId, reason) => {
     try {
         const findChatRequest = await prisma_1.default.chatRequest.findUnique({
-            where: { id, isDeleted: false },
+            where: { id },
             include: { user: true, counselor: true },
         });
         if (!findChatRequest?.user || !findChatRequest?.counselor) {
             throw new Error("Request must have both user and counselor");
         }
-        const response = await prisma_1.default.chatRequest.updateMany({
-            where: { id, isDeleted: false },
+        const response = await prisma_1.default.chatRequest.update({
+            where: { id },
             data: { status, reason },
         });
         if (status !== "APPROVED")
             return response;
         const user = findChatRequest.user;
         const counselor = findChatRequest.counselor;
-        const moderator = moderatorId
-            ? await prisma_1.default.user.findUnique({ where: { id: moderatorId } })
-            : null;
         let session = await prisma_1.default.chatSession.findFirst({
             where: {
                 userId: user.id,
@@ -193,7 +205,6 @@ const approveChatRequest = async (id, status, moderatorId, reason) => {
                 data: {
                     userId: user.id,
                     counselorId: counselor.id,
-                    moderatorId: moderatorId || null,
                     isAIChat: false,
                 },
             });
@@ -217,22 +228,11 @@ const approveChatRequest = async (id, status, moderatorId, reason) => {
                 title: "New consultation assigned",
                 message: "A new student/employee has been assigned to you.",
             });
-            if (moderatorId) {
-                await (0, notification_services_1.createNotification)({
-                    recipientId: moderatorId,
-                    type: "MESSAGE",
-                    title: "New chat session created",
-                    message: "You have been added as moderator for a consultation.",
-                });
-            }
             if (user.email) {
                 await (0, mailer_1.sendMail)(user.email, "Your consultation request is approved", `
           <h2>Welcome ${user.firstName}</h2>
           <p>Congratulations! Your consultation request has been <b>approved</b> by our moderator.</p>
           <p>Your assigned counselor is <b>${counselor.firstName} ${counselor.lastName}</b>.</p>
-          ${moderator
-                    ? `<p>Approved by Moderator: <b>${moderator.firstName} ${moderator.lastName}</b></p>`
-                    : ""}
           <p>You may now start your consultation session.</p>
           <br/>
           <p>ASCOT AI MindCare Support</p>
@@ -243,9 +243,6 @@ const approveChatRequest = async (id, status, moderatorId, reason) => {
           <h2>Hello ${counselor.firstName}</h2>
           <p>A new consultation request has been assigned to you.</p>
           <p>User: <b>${user.firstName} ${user.lastName}</b></p>
-          ${moderator
-                    ? `<p>Assigned by Moderator: <b>${moderator.firstName} ${moderator.lastName}</b></p>`
-                    : ""}
           <p>Please start the consultation when you are ready.</p>
           <br/>
           <p>ASCOT AI MindCare Support</p>

@@ -33,13 +33,26 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.approveChatRequest = exports.getMyChatRequest = exports.getChatRequest = exports.createChatRequest = exports.getCounselorClient = exports.getMessages = exports.listSessions = exports.sendAIMessage = exports.sendMessage = exports.createCounselorSession = exports.createSession = void 0;
+exports.approveChatRequest = exports.getMyChatRequest = exports.getChatRequest = exports.createChatRequest = exports.getCounselorClient = exports.getMessages = exports.sendAIMessage = exports.sendMessage = exports.createCounselorSession = exports.createSession = exports.listSessions = void 0;
 const chatService = __importStar(require("../services/chat.services"));
 const aiService = __importStar(require("../services/openai.services"));
+const listSessions = async (req, res) => {
+    try {
+        const userId = Number(req.user?.id);
+        const isCounselor = req.user?.role === "COUNSELOR";
+        const isModerator = req.user?.role === "MODERATOR";
+        const sessions = await chatService.listSessions(userId, isCounselor, isModerator);
+        res.status(200).json({ sessions });
+    }
+    catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+};
+exports.listSessions = listSessions;
 const createSession = async (req, res) => {
     try {
         const isModerator = req.user?.role === "MODERATOR";
-        const creatorId = isModerator ? Number(req.user?.id) : Number(req.user?.id);
+        const creatorId = Number(req.user?.id);
         const { counselorId, isAIChat } = req.body;
         const session = await chatService.createSession(creatorId, counselorId, isModerator ? creatorId : undefined, isAIChat);
         res.status(201).json({ session });
@@ -85,19 +98,6 @@ const sendAIMessage = async (req, res) => {
     }
 };
 exports.sendAIMessage = sendAIMessage;
-const listSessions = async (req, res) => {
-    try {
-        const userId = Number(req.user?.id);
-        const isCounselor = req.user?.role === "COUNSELOR";
-        const isModerator = req.user?.role === "MODERATOR";
-        const sessions = await chatService.listSessions(userId, isCounselor, isModerator);
-        res.status(200).json({ sessions });
-    }
-    catch (err) {
-        res.status(400).json({ message: err.message });
-    }
-};
-exports.listSessions = listSessions;
 const getMessages = async (req, res) => {
     try {
         const chatSessionId = Number(req.params.chatSessionId);

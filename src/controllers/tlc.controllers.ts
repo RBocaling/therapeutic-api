@@ -30,7 +30,6 @@ export const getUserPlans = async (req: Request, res: Response) => {
 export const getUserPlansByCounselor = async (req: Request, res: Response) => {
   try {
     const userId = Number(req.params?.id);
-    console.log("userIduserId", userId);
 
     const plans = await tlcService.getAllPlansByUser(userId);
     res.json({ success: true, data: plans });

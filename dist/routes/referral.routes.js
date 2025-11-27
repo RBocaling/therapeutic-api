@@ -39,6 +39,7 @@ const referral = __importStar(require("../controllers/referral.controllers"));
 const router = (0, express_1.Router)();
 router.post("/", auth_middleware_1.authenticateUser, referral.createReferralController);
 router.get("/", auth_middleware_1.authenticateUser, referral.listReferralsController);
+router.get("/avail", auth_middleware_1.authenticateUser, referral.listAvailReferralsController);
 router.get("/:id", auth_middleware_1.authenticateUser, referral.getReferralController);
 router.put("/:id", auth_middleware_1.authenticateUser, referral.updateReferralController);
 router.delete("/:id", auth_middleware_1.authenticateUser, referral.deleteReferralController);

@@ -15,6 +15,7 @@ const googleClient_1 = require("../utils/googleClient");
 const googleAuthService = async (token, res) => {
     try {
         let googleUser;
+        // Detect token type
         if (token.startsWith("ya29.")) {
             const response = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
                 headers: { Authorization: `Bearer ${token}` },
@@ -28,9 +29,18 @@ const googleAuthService = async (token, res) => {
             if (!googleUser?.email)
                 throw new Error("Invalid Google ID token.");
         }
+        // Find existing user with selected fields
         let user = await prisma_1.default.user.findUnique({
             where: { email: googleUser.email },
+            select: {
+                id: true,
+                password: true,
+                role: true,
+                isAccountVerified: true,
+                profile: { select: { id: true } },
+            },
         });
+        // Create user if not exists
         if (!user) {
             user = await prisma_1.default.user.create({
                 data: {
@@ -41,19 +51,24 @@ const googleAuthService = async (token, res) => {
                     googleId: googleUser.sub,
                     profile: { create: { userStatus: "STUDENT" } },
                 },
+                select: {
+                    id: true,
+                    password: true,
+                    role: true,
+                    isAccountVerified: true,
+                    profile: { select: { id: true } },
+                },
             });
         }
         else if (!user.googleId) {
+            // Update googleId if missing
             await prisma_1.default.user.update({
                 where: { id: user.id },
                 data: { googleId: googleUser.sub },
             });
         }
-        const tokens = (0, jwt_1.generateTokens)({
-            id: user.id,
-            email: user.email,
-            role: user.role,
-        });
+        // Generate tokens using same object shape as loginUser
+        const tokens = (0, jwt_1.generateTokens)(user);
         res.cookie("accessToken", tokens.accessToken, {
             httpOnly: true,
             secure: true,

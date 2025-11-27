@@ -18,8 +18,9 @@ const AT_RISK_KEYWORDS = [
 ];
 const getReportOverview = async (counselorId) => {
     try {
+        // 1️⃣ Fetch chat sessions for the counselor
         const data = await prisma_1.default.chatSession.findMany({
-            where: { counselorId: counselorId },
+            where: { counselorId },
             include: {
                 user: {
                     include: {
@@ -30,16 +31,18 @@ const getReportOverview = async (counselorId) => {
                 messages: { take: 1, orderBy: { createdAt: "desc" } },
             },
         });
-        const users = data?.map((item) => item?.user);
-        // ✅ 2. Filter AT-RISK USERS based on resultCategory
-        const atRiskUsers = users?.filter((u) => u.responses?.some((r) => AT_RISK_KEYWORDS?.some((key) => (r.resultCategory ?? "").toLowerCase().includes(key))));
-        // ✅ 3. Interventions most given (Counselor Notes)
+        // 2️⃣ Filter out null users
+        const users = data?.map((item) => item.user).filter(Boolean);
+        // 3️⃣ AT-RISK USERS based on responses
+        const atRiskUsers = users?.filter((u) => u.responses?.some((r) => AT_RISK_KEYWORDS?.some((key) => (r.resultCategory ?? "").toLowerCase().includes(key)))) || [];
+        // 4️⃣ Interventions most given by this counselor
         const interventions = await prisma_1.default.counselorNote.groupBy({
             by: ["noteType"],
+            where: { counselorId },
             _count: { id: true },
             orderBy: { _count: { id: "desc" } },
         });
-        // ✅ 4. AGE BRACKET BUCKETING
+        // 5️⃣ AGE BRACKET BUCKETING
         const ageBracketCount = {
             "18-24": 0,
             "25-34": 0,
@@ -63,27 +66,27 @@ const getReportOverview = async (counselorId) => {
             else
                 ageBracketCount["55+"]++;
         });
-        // ✅ 5. GENDER DISTRIBUTION
+        // 6️⃣ GENDER DISTRIBUTION
         const genderCount = {};
         atRiskUsers.forEach((u) => {
             const gender = u.profile?.gender ?? "Unknown";
             genderCount[gender] = (genderCount[gender] || 0) + 1;
         });
-        // ✅ 6. Indigenous / Tribe counting
+        // 7️⃣ Indigenous / Tribe counting
         const indigenousCases = atRiskUsers.filter((u) => u.profile?.indigenousGroup);
         const tribeCount = {};
         indigenousCases.forEach((u) => {
             const tribe = u.profile?.indigenousGroup;
             tribeCount[tribe] = (tribeCount[tribe] || 0) + 1;
         });
-        // ✅ 7. Single parents
+        // 8️⃣ Single parents
         const singleParents = atRiskUsers.filter((u) => u.profile?.isSingleParent);
-        // ✅ 8. Poor family at-risk
+        // 9️⃣ Poor family at-risk
         const poorFamilies = atRiskUsers.filter((u) => u.profile?.familyIncomeRange &&
             u.profile.familyIncomeRange.toLowerCase().includes("below"));
-        // ✅ 9. First generation students
+        // 🔟 First generation students
         const firstGenStudents = atRiskUsers.filter((u) => u.profile?.isFirstGenerationStudent);
-        // ✅ 10. PWD and disability counting
+        // 1️⃣1️⃣ PWD and disability counting
         const pwds = atRiskUsers.filter((u) => u.profile?.isPWD);
         const disabilityCount = {};
         pwds.forEach((u) => {
@@ -92,10 +95,10 @@ const getReportOverview = async (counselorId) => {
             const dis = u.profile.disability;
             disabilityCount[dis] = (disabilityCount[dis] || 0) + 1;
         });
-        // ✅ FINAL REPORT RESPONSE
+        // 1️⃣2️⃣ FINAL REPORT RESPONSE
         return {
             summary: {
-                interventionMostGiven: interventions.length > 0 ? interventions[0].noteType : null,
+                interventionMostGiven: interventions[0]?.noteType || null,
                 ageBracketMostCrisis: Object.entries(ageBracketCount).sort((a, b) => b[1] - a[1])[0]?.[0],
                 genderMostCases: Object.entries(genderCount).sort((a, b) => b[1] - a[1])[0]?.[0],
                 indigenousWithCases: indigenousCases.length,
