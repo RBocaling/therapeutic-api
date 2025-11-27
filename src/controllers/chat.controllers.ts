@@ -2,11 +2,27 @@ import { Request, Response } from "express";
 import * as chatService from "../services/chat.services";
 import * as aiService from "../services/openai.services";
 
+export const listSessions = async (req: Request, res: Response) => {
+  try {
+    const userId = Number(req.user?.id);
+    const isCounselor = req.user?.role === "COUNSELOR";
+    const isModerator = req.user?.role === "MODERATOR";
+    const sessions = await chatService.listSessions(
+      userId,
+      isCounselor,
+      isModerator
+    );
+    res.status(200).json({ sessions });
+  } catch (err: any) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
 export const createSession = async (req: Request, res: Response) => {
   try {
     const isModerator = req.user?.role === "MODERATOR";
 
-    const creatorId = isModerator ? Number(req.user?.id) : Number(req.user?.id);
+    const creatorId = Number(req.user?.id);
 
     const { counselorId, isAIChat } = req.body;
 
@@ -71,21 +87,7 @@ export const sendAIMessage = async (req: Request, res: Response) => {
   }
 };
 
-export const listSessions = async (req: Request, res: Response) => {
-  try {
-    const userId = Number(req.user?.id);
-    const isCounselor = req.user?.role === "COUNSELOR";
-    const isModerator = req.user?.role === "MODERATOR";
-    const sessions = await chatService.listSessions(
-      userId,
-      isCounselor,
-      isModerator
-    );
-    res.status(200).json({ sessions });
-  } catch (err: any) {
-    res.status(400).json({ message: err.message });
-  }
-};
+
 
 export const getMessages = async (req: Request, res: Response) => {
   try {

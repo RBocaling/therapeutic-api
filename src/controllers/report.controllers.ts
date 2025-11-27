@@ -4,6 +4,7 @@ import { getReportOverview } from "../services/report.services";
 export const getReports = async (req: Request, res: Response) => {
   try {
     const couselorId = Number(req?.user?.id);
+console.log("couselorId", couselorId);
 
     const response = await getReportOverview(couselorId);
     res.status(201).json(response);

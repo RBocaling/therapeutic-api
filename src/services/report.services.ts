@@ -12,10 +12,13 @@ const AT_RISK_KEYWORDS = [
   "at risk",
 ];
 
+
+
 export const getReportOverview = async (counselorId: number) => {
   try {
+    // 1️⃣ Fetch chat sessions for the counselor
     const data = await prisma.chatSession.findMany({
-      where: { counselorId: counselorId },
+      where: { counselorId },
       include: {
         user: {
           include: {
@@ -27,26 +30,29 @@ export const getReportOverview = async (counselorId: number) => {
       },
     });
 
-    const users = data?.map((item: any) => item?.user);
+    // 2️⃣ Filter out null users
+    const users = data?.map((item) => item.user).filter(Boolean);
 
-    // ✅ 2. Filter AT-RISK USERS based on resultCategory
-    const atRiskUsers = users?.filter((u: any) =>
-      u.responses?.some((r: any) =>
-        AT_RISK_KEYWORDS?.some((key) =>
-          (r.resultCategory ?? "").toLowerCase().includes(key)
+    // 3️⃣ AT-RISK USERS based on responses
+    const atRiskUsers =
+      users?.filter((u: any) =>
+        u.responses?.some((r: any) =>
+          AT_RISK_KEYWORDS?.some((key) =>
+            (r.resultCategory ?? "").toLowerCase().includes(key)
+          )
         )
-      )
-    );
+      ) || [];
 
-    // ✅ 3. Interventions most given (Counselor Notes)
+    // 4️⃣ Interventions most given by this counselor
     const interventions = await prisma.counselorNote.groupBy({
       by: ["noteType"],
+      where: { counselorId },
       _count: { id: true },
       orderBy: { _count: { id: "desc" } },
     });
 
-    // ✅ 4. AGE BRACKET BUCKETING
-    const ageBracketCount = {
+    // 5️⃣ AGE BRACKET BUCKETING
+    const ageBracketCount: Record<string, number> = {
       "18-24": 0,
       "25-34": 0,
       "35-44": 0,
@@ -66,44 +72,42 @@ export const getReportOverview = async (counselorId: number) => {
       else ageBracketCount["55+"]++;
     });
 
-    // ✅ 5. GENDER DISTRIBUTION
+    // 6️⃣ GENDER DISTRIBUTION
     const genderCount: Record<string, number> = {};
     atRiskUsers.forEach((u: any) => {
       const gender = u.profile?.gender ?? "Unknown";
       genderCount[gender] = (genderCount[gender] || 0) + 1;
     });
 
-    // ✅ 6. Indigenous / Tribe counting
+    // 7️⃣ Indigenous / Tribe counting
     const indigenousCases = atRiskUsers.filter(
       (u: any) => u.profile?.indigenousGroup
     );
-
     const tribeCount: Record<string, number> = {};
     indigenousCases.forEach((u: any) => {
       const tribe = u.profile?.indigenousGroup!;
       tribeCount[tribe] = (tribeCount[tribe] || 0) + 1;
     });
 
-    // ✅ 7. Single parents
+    // 8️⃣ Single parents
     const singleParents = atRiskUsers.filter(
       (u: any) => u.profile?.isSingleParent
     );
 
-    // ✅ 8. Poor family at-risk
+    // 9️⃣ Poor family at-risk
     const poorFamilies = atRiskUsers.filter(
       (u: any) =>
         u.profile?.familyIncomeRange &&
         u.profile.familyIncomeRange.toLowerCase().includes("below")
     );
 
-    // ✅ 9. First generation students
+    // 🔟 First generation students
     const firstGenStudents = atRiskUsers.filter(
       (u: any) => u.profile?.isFirstGenerationStudent
     );
 
-    // ✅ 10. PWD and disability counting
+    // 1️⃣1️⃣ PWD and disability counting
     const pwds = atRiskUsers.filter((u: any) => u.profile?.isPWD);
-
     const disabilityCount: Record<string, number> = {};
     pwds.forEach((u: any) => {
       if (!u.profile?.disability) return;
@@ -111,37 +115,29 @@ export const getReportOverview = async (counselorId: number) => {
       disabilityCount[dis] = (disabilityCount[dis] || 0) + 1;
     });
 
-    // ✅ FINAL REPORT RESPONSE
+    // 1️⃣2️⃣ FINAL REPORT RESPONSE
     return {
       summary: {
-        interventionMostGiven:
-          interventions.length > 0 ? interventions[0].noteType : null,
-
+        interventionMostGiven: interventions[0]?.noteType || null,
         ageBracketMostCrisis: Object.entries(ageBracketCount).sort(
           (a, b) => b[1] - a[1]
         )[0]?.[0],
-
         genderMostCases: Object.entries(genderCount).sort(
           (a, b) => b[1] - a[1]
         )[0]?.[0],
-
         indigenousWithCases: indigenousCases.length,
         tribeMostCases: Object.entries(tribeCount).sort(
           (a, b) => b[1] - a[1]
         )[0]?.[0],
-
         singleParents: singleParents.length,
         poorFamilyAtRisk: poorFamilies.length,
         firstGenStudentsAtRisk: firstGenStudents.length,
         pwdCount: pwds.length,
-
         disabilityMostCases: Object.entries(disabilityCount).sort(
           (a, b) => b[1] - a[1]
         )[0]?.[0],
-
         totalAtRisk: atRiskUsers.length,
       },
-
       lists: {
         atRiskUsers,
         interventions,

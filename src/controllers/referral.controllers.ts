@@ -47,6 +47,17 @@ export const listReferralsController = async (req: Request, res: Response) => {
     res.status(500).json({ message: err.message });
   }
 };
+export const listAvailReferralsController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const referrals = await ref.listAvailReferrals(Number(req?.user?.id));
+    res.json(referrals);
+  } catch (err: any) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
 export const getReferralController = async (req: Request, res: Response) => {
   try {

@@ -92,8 +92,39 @@ export const createReferral = async (payload: {
 };
 
 
-export const listReferrals = async (id:number, role:any) => {
+export const listAvailReferrals = async (id: number) => {
+  try {
+    const users = await prisma.referral.findMany({
+      where: { counselorId: id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true,
+            isAccountVerified: true,
+            profilePic: true,
+            createdAt: true,
+            updatedAt: true,
+            profile: true,
+          },
+        },
+      },
+    });
 
+    // const user = users?.user?.map((item: any) => ({
+    //   ...item,
+    //   category: item?.profile?.userStatus,
+    // }));
+
+    return users?.map((item) => item?.user);
+  } catch (error: any) {
+    throw new Error(error.message || "Failed to list referrals");
+  }
+};
+export const listReferrals = async (id: number, role: any) => {
   const where: any = {};
 
   if (role === "USER") where.userId = id;
@@ -238,3 +269,5 @@ export const deleteReferral = async (id: number) => {
     throw new Error(error.message || "Failed to delete referral");
   }
 };
+
+

@@ -267,7 +267,7 @@ model SurveyAnswer {
 
 model ChatSession {
   id          Int          @id @default(autoincrement())
-  userId      Int
+  userId      Int?
   counselorId Int?
   moderatorId   Int?    
   isAIChat    Boolean      @default(false)
@@ -275,7 +275,7 @@ model ChatSession {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
-  user        User         @relation("UserChatSessions", fields: [userId], references: [id])
+  user        User?         @relation("UserChatSessions", fields: [userId], references: [id])
   counselor   User?        @relation("CounselorChatSessions", fields: [counselorId], references: [id])
   moderator     User?        @relation("ModeratorChatSessions", fields: [moderatorId], references: [id])
   messages    ChatMessage[]
@@ -348,7 +348,7 @@ enum CampaignStatus {
   DRAFT
   SCHEDULED
   PUBLISHED
-  ARCHIVED
+  ARCHIVED  
 }
 
 
