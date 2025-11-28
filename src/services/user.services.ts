@@ -51,6 +51,11 @@ export const listUsers = async () => {
         createdAt: true,
         updatedAt: true,
         profile: true,
+        referredsAsUser: {
+          select: {
+            id: true,
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
     });
@@ -77,6 +82,11 @@ export const listUsersWithSurvey = async () => {
         responses: {
           include: {
             surveyForm: true,
+          },
+        },
+        referredsAsUser: {
+          select: {
+            id: true,
           },
         },
       },
@@ -113,7 +123,6 @@ export const listUsersWithSurvey = async () => {
       const percents = surveys
         .map((s) => s.percent)
         .filter((p) => typeof p === "number") as number[];
-
 
       // Average percentage
       const avg =
