@@ -24,11 +24,7 @@ export const createReferralController = async (req: Request, res: Response) => {
     };
 
     if (
-      !payload.userId ||
-      !payload.concern ||
-      !payload.shortDescription ||
-      !payload.recipient
-    ) {
+      !payload.userId ) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
