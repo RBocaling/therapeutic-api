@@ -33,7 +33,7 @@ export const createCampaign = async (
         endDate: data.endDate ?? null,
         audienceTags: data.audienceTags ?? null,
         createdById: data.createdById,
-        isPostApproved: role === "MODERATOR" ? true : false,
+        isPostApproved: role !== "USER" ? true : false,
         images: data.images
           ? {
               create: data.images.map((i) => ({
