@@ -5,7 +5,7 @@ export const authenticateUser = (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+) :any=> {
   // 1) Try Authorization header first (Bearer token)
   const authHeader = (req.headers?.authorization ||
     req.headers?.Authorization) as string | undefined;
