@@ -8,82 +8,82 @@ import { createNotification } from "./notification.services";
 import { verifyGoogleToken } from "../utils/googleClient";
 
 // connect google
-export const googleAuthService = async (token: string, res: Response) => {
-  try {
-    let googleUser: any;
+export const googleAuthService = async (token: string) => {
+  let googleUser: any;
+  if (token.startsWith("ya29.")) {
+    const response = await fetch(
+      "https://www.googleapis.com/oauth2/v3/userinfo",
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    googleUser = await response.json();
+    if (!googleUser?.email) throw new Error("Invalid Google access token.");
+  } else {
+    googleUser = await verifyGoogleToken(token);
+    if (!googleUser?.email) throw new Error("Invalid Google ID token.");
+  }
 
-    // Detect token type
-    if (token.startsWith("ya29.")) {
-      const response = await fetch(
-        "https://www.googleapis.com/oauth2/v3/userinfo",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      googleUser = await response.json();
-      if (!googleUser?.email) throw new Error("Invalid Google access token.");
-    } else {
-      googleUser = await verifyGoogleToken(token);
-      if (!googleUser?.email) throw new Error("Invalid Google ID token.");
-    }
+  let user = (await prisma.user.findUnique({
+    where: { email: googleUser.email },
+    select: {
+      id: true,
+      password: true,
+      role: true,
+      isAccountVerified: true,
+      profile: { select: { id: true } },
+      firstName: true,
+      lastName: true,
+      email: true,
+      googleId: true,
+    },
+  })) as any;
 
-    // Find existing user with selected fields
-    let user = await prisma.user.findUnique({
-      where: { email: googleUser.email },
+  if (!user) {
+    user = await prisma.user.create({
+      data: {
+        firstName: googleUser.given_name ?? "",
+        lastName: googleUser.family_name ?? "",
+        email: googleUser.email,
+        isAccountVerified: true,
+        googleId: googleUser.sub,
+        profile: { create: { userStatus: "STUDENT" } },
+      },
       select: {
         id: true,
         password: true,
         role: true,
         isAccountVerified: true,
         profile: { select: { id: true } },
+        firstName: true,
+        lastName: true,
+        email: true,
+        googleId: true,
       },
-    }) as any;
-
-    // Create user if not exists
-    if (!user) {
-      user = await prisma.user.create({
-        data: {
-          firstName: googleUser.given_name ?? "",
-          lastName: googleUser.family_name ?? "",
-          email: googleUser.email,
-          isAccountVerified: true,
-          googleId: googleUser.sub,
-          profile: { create: { userStatus: "STUDENT" } },
-        },
-        select: {
-          id: true,
-          password: true,
-          role: true,
-          isAccountVerified: true,
-          profile: { select: { id: true } },
-        },
-      });
-    } else if (!user.googleId) {
-      // Update googleId if missing
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { googleId: googleUser.sub },
-      });
-    }
-
-    // Generate tokens using same object shape as loginUser
-    const tokens = generateTokens(user);
-
-    res.cookie("accessToken", tokens.accessToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
     });
-    res.cookie("refreshToken", tokens.refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
+  } else if (!user.googleId) {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { googleId: googleUser.sub },
     });
-
-    return user;
-  } catch (error: any) {
-    throw new Error(error.message || "Google authentication failed.");
+    user = (await prisma.user.findUnique({
+      where: { id: user.id },
+      select: {
+        id: true,
+        password: true,
+        role: true,
+        isAccountVerified: true,
+        profile: { select: { id: true } },
+        firstName: true,
+        lastName: true,
+        email: true,
+        googleId: true,
+      },
+    })) as any;
   }
+
+  const tokens = generateTokens(user);
+  return { user, tokens };
 };
 
 
@@ -133,44 +133,33 @@ export const registerUser = async (data: any) => {
   }
 };
 
-export const loginUser = async (
-  { email, password }: { email: string; password: string },
-  res: Response
-) => {
-  try {
-    const user = await prisma.user.findUnique({
-      where: { email },
-      select: {
-        id: true,
-        password: true,
-        role: true,
-        isAccountVerified: true,
-        profile: { select: { id: true } },
-      },
-    });
-    if (!user?.password || !user) throw new Error("User not found.");
-
-    const valid = await argon2.verify(user?.password, password);
-    if (!valid) throw new Error("Invalid credentials.");
-    if (user.role === "USER" && !user.isAccountVerified)
-      throw new Error("Account not verified.");
-
-    const tokens = generateTokens(user);
-    res.cookie("accessToken", tokens.accessToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-    });
-    res.cookie("refreshToken", tokens.refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-    });
-
-    return user;
-  } catch (err: any) {
-    throw new Error(err.message || "Login failed.");
-  }
+export const loginUser = async ({
+  email,
+  password,
+}: {
+  email: string;
+  password: string;
+}) => {
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: {
+      id: true,
+      password: true,
+      role: true,
+      isAccountVerified: true,
+      profile: { select: { id: true } },
+      firstName: true,
+      lastName: true,
+      email: true,
+    },
+  });
+  if (!user?.password || !user) throw new Error("User not found.");
+  const valid = await argon2.verify(user.password, password);
+  if (!valid) throw new Error("Invalid credentials.");
+  if (user.role === "USER" && !user.isAccountVerified)
+    throw new Error("Account not verified.");
+  const tokens = generateTokens(user);
+  return { user, tokens };
 };
 
 export const verifyAccountService = async (email: string, otp: string) => {
