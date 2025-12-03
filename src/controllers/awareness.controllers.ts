@@ -99,6 +99,14 @@ export const listCampaignsAll = async (_req: Request, res: Response) => {
     res.status(500).json(error.message);
   }
 };
+export const listCampaignsV3 = async (_req: Request, res: Response) => {
+  try {
+    const campaigns = await campaignService.listCampaignsAllV3();
+    res.json(campaigns);
+  } catch (error: any) {
+    res.status(500).json(error.message);
+  }
+};
 export const getMyPost = async (req: Request, res: Response) => {
   try {
     const campaigns = await campaignService.getMyPost(Number(req?.user?.id));
@@ -118,6 +126,16 @@ export const moderatorCampaigns = async (_req: Request, res: Response) => {
 export const pendingListCampaigns = async (req: Request, res: Response) => {
   try {
     const campaigns = await campaignService.MyPendingPendingCampaigns(
+      Number(req?.user?.id)
+    );
+    res.json(campaigns);
+  } catch (error: any) {
+    res.status(500).json(error.message);
+  }
+};
+export const UserspendingListCampaigns = async (req: Request, res: Response) => {
+  try {
+    const campaigns = await campaignService.UserPendingPendingCampaigns(
       Number(req?.user?.id)
     );
     res.json(campaigns);

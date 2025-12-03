@@ -1,3 +1,4 @@
+import { listCampaignsAllV3 } from './../services/awareness.services';
 import { Router } from "express";
 import { authenticateUser } from "../middlewares/auth.middleware";
 import * as campaignController from "../controllers/awareness.controllers";
@@ -7,6 +8,7 @@ const router = Router();
 router.post("/", authenticateUser, campaignController.createCampaign as any);
 router.get("/", authenticateUser, campaignController.listCampaigns);
 router.get("/v2", authenticateUser, campaignController.listCampaignsAll);
+router.get("/v3", authenticateUser, campaignController.listCampaignsV3);
 router.get("/get-my-content", authenticateUser, campaignController.getMyPost);
 router.get(
   "/moderator-post",
@@ -22,6 +24,11 @@ router.get(
   "/user-pending",
   authenticateUser,
   campaignController.pendingListCampaigns
+);
+router.get(
+  "/users-pendingv2",
+  authenticateUser,
+  campaignController.UserspendingListCampaigns
 );
 router.put(
   "/status/:id",
