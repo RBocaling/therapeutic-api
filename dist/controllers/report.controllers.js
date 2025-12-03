@@ -6,7 +6,7 @@ const getReports = async (req, res) => {
     try {
         const couselorId = Number(req?.user?.id);
         console.log("couselorId", couselorId);
-        const response = await (0, report_services_1.getReportOverview)(couselorId);
+        const response = await (0, report_services_1.getReportOverviewV2)(couselorId);
         res.status(201).json(response);
     }
     catch (error) {

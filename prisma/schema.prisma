@@ -161,6 +161,8 @@ model UserProfile {
   selfieImage               String? @db.Text
   isFirstGenerationStudent   Boolean?       @default(false)
   indigenousGroup            String?
+  liveParent                 String?
+  livingParentTogether       String?
   isSingleParent             Boolean?       @default(false)
   singleParentYears          Int?
   isPWD                      Boolean?       @default(false)

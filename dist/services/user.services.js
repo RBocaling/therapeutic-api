@@ -53,6 +53,11 @@ const listUsers = async () => {
                 createdAt: true,
                 updatedAt: true,
                 profile: true,
+                referredsAsUser: {
+                    select: {
+                        id: true,
+                    },
+                },
             },
             orderBy: { createdAt: "desc" },
         });
@@ -79,6 +84,11 @@ const listUsersWithSurvey = async () => {
                 responses: {
                     include: {
                         surveyForm: true,
+                    },
+                },
+                referredsAsUser: {
+                    select: {
+                        id: true,
                     },
                 },
             },

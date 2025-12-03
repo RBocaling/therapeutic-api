@@ -55,10 +55,7 @@ const createReferralController = async (req, res) => {
             recipient: String(req.body.recipient || ""),
             summaryNotes: req.body.summaryNotes ?? null,
         };
-        if (!payload.userId ||
-            !payload.concern ||
-            !payload.shortDescription ||
-            !payload.recipient) {
+        if (!payload.userId) {
             return res.status(400).json({ message: "Missing required fields" });
         }
         const referral = await ref.createReferral(payload);

@@ -41,13 +41,20 @@ const qoutes_services_1 = require("../services/qoutes.services");
 const googleLogin = async (req, res) => {
     try {
         const { token } = req.body;
-        const tokens = await auth.googleAuthService(token, res);
+        const result = await auth.googleAuthService(token);
         await auditService.createAudit({
             description: "Login on Google",
             type: "LOGIN",
-            userId: token?.id,
+            userId: result?.user?.id,
         });
-        res.status(200).json({ message: "Google login successful", tokens });
+        res.setHeader("Authorization", `Bearer ${result.tokens.accessToken}`);
+        res
+            .status(200)
+            .json({
+            message: "Google login successful",
+            user: result.user,
+            tokens: result.tokens,
+        });
     }
     catch (err) {
         res.status(400).json({ message: err.message });
@@ -71,13 +78,14 @@ const register = async (req, res) => {
 exports.register = register;
 const login = async (req, res) => {
     try {
-        const user = await auth.loginUser(req.body, res);
+        const result = await auth.loginUser(req.body);
         await auditService.createAudit({
             description: "Login",
             type: "LOGIN",
-            userId: user?.id,
+            userId: result?.user?.id,
         });
-        res.status(200).json(user);
+        res.setHeader("Authorization", `Bearer ${result.tokens.accessToken}`);
+        res.status(200).json({ user: result.user, tokens: result.tokens });
     }
     catch (err) {
         res.status(400).json({ message: err.message });

@@ -222,6 +222,10 @@ export const completeUserProfile = async (userId: number, data: any) => {
         office: data.office ?? undefined,
         jobPosition: data.jobPosition ?? undefined,
         isKycVerified: data.isKycVerified ?? undefined,
+
+        // new
+        liveParent: data.liveParent ?? undefined,
+        livingParentTogether: data.livingParentTogether ?? undefined,
       },
     });
   } catch (err: any) {

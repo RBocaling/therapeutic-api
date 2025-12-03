@@ -25,20 +25,8 @@ const audit_routes_1 = __importDefault(require("./routes/audit.routes"));
 const report_routes_1 = __importDefault(require("./routes/report.routes"));
 const case_routes_1 = __importDefault(require("./routes/case.routes"));
 const app = (0, express_1.default)();
-const allowedOrigins = [
-    "http://localhost:5173",
-    "http://localhost:5175",
-    "https://therapeutic-ai-clientside-rlacj515n.vercel.app",
-    "https://therapeutic-ai-clientside-f5fn.vercel.app",
-    "https://ascot-mentalhealthcare.site",
-    "https://www.ascot-mentalhealthcare.site",
-    "https://localhost",
-    "http://localhost",
-    "capacitor://localhost",
-];
 app.use((0, cors_1.default)({
-    origin: allowedOrigins,
-    credentials: true,
+    origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
 }));
 app.use(express_1.default.json());

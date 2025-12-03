@@ -12,78 +12,80 @@ const jwt_1 = require("../utils/jwt");
 const notification_services_1 = require("./notification.services");
 const googleClient_1 = require("../utils/googleClient");
 // connect google
-const googleAuthService = async (token, res) => {
-    try {
-        let googleUser;
-        // Detect token type
-        if (token.startsWith("ya29.")) {
-            const response = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            googleUser = await response.json();
-            if (!googleUser?.email)
-                throw new Error("Invalid Google access token.");
-        }
-        else {
-            googleUser = await (0, googleClient_1.verifyGoogleToken)(token);
-            if (!googleUser?.email)
-                throw new Error("Invalid Google ID token.");
-        }
-        // Find existing user with selected fields
-        let user = await prisma_1.default.user.findUnique({
-            where: { email: googleUser.email },
+const googleAuthService = async (token) => {
+    let googleUser;
+    if (token.startsWith("ya29.")) {
+        const response = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        googleUser = await response.json();
+        if (!googleUser?.email)
+            throw new Error("Invalid Google access token.");
+    }
+    else {
+        googleUser = await (0, googleClient_1.verifyGoogleToken)(token);
+        if (!googleUser?.email)
+            throw new Error("Invalid Google ID token.");
+    }
+    let user = (await prisma_1.default.user.findUnique({
+        where: { email: googleUser.email },
+        select: {
+            id: true,
+            password: true,
+            role: true,
+            isAccountVerified: true,
+            profile: { select: { id: true } },
+            firstName: true,
+            lastName: true,
+            email: true,
+            googleId: true,
+        },
+    }));
+    if (!user) {
+        user = await prisma_1.default.user.create({
+            data: {
+                firstName: googleUser.given_name ?? "",
+                lastName: googleUser.family_name ?? "",
+                email: googleUser.email,
+                isAccountVerified: true,
+                googleId: googleUser.sub,
+                profile: { create: { userStatus: "STUDENT" } },
+            },
             select: {
                 id: true,
                 password: true,
                 role: true,
                 isAccountVerified: true,
                 profile: { select: { id: true } },
+                firstName: true,
+                lastName: true,
+                email: true,
+                googleId: true,
             },
         });
-        // Create user if not exists
-        if (!user) {
-            user = await prisma_1.default.user.create({
-                data: {
-                    firstName: googleUser.given_name ?? "",
-                    lastName: googleUser.family_name ?? "",
-                    email: googleUser.email,
-                    isAccountVerified: true,
-                    googleId: googleUser.sub,
-                    profile: { create: { userStatus: "STUDENT" } },
-                },
-                select: {
-                    id: true,
-                    password: true,
-                    role: true,
-                    isAccountVerified: true,
-                    profile: { select: { id: true } },
-                },
-            });
-        }
-        else if (!user.googleId) {
-            // Update googleId if missing
-            await prisma_1.default.user.update({
-                where: { id: user.id },
-                data: { googleId: googleUser.sub },
-            });
-        }
-        // Generate tokens using same object shape as loginUser
-        const tokens = (0, jwt_1.generateTokens)(user);
-        res.cookie("accessToken", tokens.accessToken, {
-            httpOnly: true,
-            secure: true,
-            sameSite: "none",
-        });
-        res.cookie("refreshToken", tokens.refreshToken, {
-            httpOnly: true,
-            secure: true,
-            sameSite: "none",
-        });
-        return user;
     }
-    catch (error) {
-        throw new Error(error.message || "Google authentication failed.");
+    else if (!user.googleId) {
+        await prisma_1.default.user.update({
+            where: { id: user.id },
+            data: { googleId: googleUser.sub },
+        });
+        user = (await prisma_1.default.user.findUnique({
+            where: { id: user.id },
+            select: {
+                id: true,
+                password: true,
+                role: true,
+                isAccountVerified: true,
+                profile: { select: { id: true } },
+                firstName: true,
+                lastName: true,
+                email: true,
+                googleId: true,
+            },
+        }));
     }
+    const tokens = (0, jwt_1.generateTokens)(user);
+    return { user, tokens };
 };
 exports.googleAuthService = googleAuthService;
 // manualll
@@ -125,41 +127,29 @@ const registerUser = async (data) => {
     }
 };
 exports.registerUser = registerUser;
-const loginUser = async ({ email, password }, res) => {
-    try {
-        const user = await prisma_1.default.user.findUnique({
-            where: { email },
-            select: {
-                id: true,
-                password: true,
-                role: true,
-                isAccountVerified: true,
-                profile: { select: { id: true } },
-            },
-        });
-        if (!user?.password || !user)
-            throw new Error("User not found.");
-        const valid = await argon2_1.default.verify(user?.password, password);
-        if (!valid)
-            throw new Error("Invalid credentials.");
-        if (user.role === "USER" && !user.isAccountVerified)
-            throw new Error("Account not verified.");
-        const tokens = (0, jwt_1.generateTokens)(user);
-        res.cookie("accessToken", tokens.accessToken, {
-            httpOnly: true,
-            secure: true,
-            sameSite: "none",
-        });
-        res.cookie("refreshToken", tokens.refreshToken, {
-            httpOnly: true,
-            secure: true,
-            sameSite: "none",
-        });
-        return user;
-    }
-    catch (err) {
-        throw new Error(err.message || "Login failed.");
-    }
+const loginUser = async ({ email, password, }) => {
+    const user = await prisma_1.default.user.findUnique({
+        where: { email },
+        select: {
+            id: true,
+            password: true,
+            role: true,
+            isAccountVerified: true,
+            profile: { select: { id: true } },
+            firstName: true,
+            lastName: true,
+            email: true,
+        },
+    });
+    if (!user?.password || !user)
+        throw new Error("User not found.");
+    const valid = await argon2_1.default.verify(user.password, password);
+    if (!valid)
+        throw new Error("Invalid credentials.");
+    if (user.role === "USER" && !user.isAccountVerified)
+        throw new Error("Account not verified.");
+    const tokens = (0, jwt_1.generateTokens)(user);
+    return { user, tokens };
 };
 exports.loginUser = loginUser;
 const verifyAccountService = async (email, otp) => {
@@ -223,6 +213,9 @@ const completeUserProfile = async (userId, data) => {
                 office: data.office ?? undefined,
                 jobPosition: data.jobPosition ?? undefined,
                 isKycVerified: data.isKycVerified ?? undefined,
+                // new
+                liveParent: data.liveParent ?? undefined,
+                livingParentTogether: data.livingParentTogether ?? undefined,
             },
         });
     }
