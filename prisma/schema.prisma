@@ -347,10 +347,12 @@ enum Sentiment {
 }
 
 enum CampaignStatus {
-  DRAFT
+ DRAFT
   SCHEDULED
   PUBLISHED
   ARCHIVED  
+  RESOLVED
+  IN_PROGRESS
 }
 
 
@@ -782,6 +784,7 @@ enum CaseStatus {
   IN_PROGRESS
   RESOLVED
   CLOSED
+  REFFERED_TO
 }
 
 model CaseManagement {
@@ -792,6 +795,7 @@ model CaseManagement {
   title       String
   description String?       @db.Text
   status      CaseStatus    @default(OPEN)
+  RefferedTo String?
   intervention String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

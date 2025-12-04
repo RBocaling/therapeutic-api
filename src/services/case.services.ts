@@ -55,11 +55,10 @@ export const getCaseById = async (caseId: number) => {
     include: { evidences: true, user: true, counselor: true },
   });
 };
-
-export const updateCaseStatus = async (caseId: number, status: any) => {
+export const updateCaseStatus = async (caseId: number, status: any, refferedTo:any) => {
   return prisma.caseManagement.update({
     where: { id: caseId },
-    data: { status },
+    data: { status, RefferedTo:refferedTo },
   });
 };
 

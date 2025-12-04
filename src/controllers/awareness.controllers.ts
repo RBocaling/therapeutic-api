@@ -50,14 +50,10 @@ export const createCampaign = async (req: Request, res: Response) => {
 export const updateCampaignStatus = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
-    const { status } = req.body;
+     const { status, refferedTo } = req.body;
 
-    const validStatuses = ["DRAFT", "SCHEDULED", "PUBLISHED", "ARCHIVED"];
-    if (!validStatuses.includes(status)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid status value" });
-    }
+
+   
 
     const updated = await campaignService.updateCampaignStatus(id, status);
     res.json({ success: true, data: updated });
