@@ -47,6 +47,7 @@ router.get(
   authenticateUser,
   campaignController.listFeedbacks
 );
+router.post("/pin/:id", authenticateUser, campaignController.updateCampaignPin);
 router.put("/:id", authenticateUser, campaignController.updateCampaign);
 router.put(
   "/delete/:id",

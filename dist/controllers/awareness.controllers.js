@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteContentPost = exports.updateCampaign = exports.listFeedbacks = exports.submitFeedback = exports.addComment = exports.getCampaignById = exports.counselorListCampaigns = exports.pendingListCampaigns = exports.moderatorCampaigns = exports.getMyPost = exports.listCampaignsAll = exports.listCampaigns = exports.updateCampaignPostApprove = exports.updateCampaignStatus = exports.createCampaign = void 0;
+exports.deleteContentPost = exports.updateCampaign = exports.listFeedbacks = exports.submitFeedback = exports.addComment = exports.getCampaignById = exports.counselorListCampaigns = exports.UserspendingListCampaigns = exports.pendingListCampaigns = exports.moderatorCampaigns = exports.getMyPost = exports.listCampaignsV3 = exports.listCampaignsAll = exports.listCampaigns = exports.updateCampaignPostApprove = exports.updateCampaignStatus = exports.createCampaign = void 0;
 const campaignService = __importStar(require("../services/awareness.services"));
 const auditService = __importStar(require("../services/audit.services"));
 const createCampaign = async (req, res) => {
@@ -118,6 +118,16 @@ const listCampaignsAll = async (_req, res) => {
     }
 };
 exports.listCampaignsAll = listCampaignsAll;
+const listCampaignsV3 = async (_req, res) => {
+    try {
+        const campaigns = await campaignService.listCampaignsAllV3();
+        res.json(campaigns);
+    }
+    catch (error) {
+        res.status(500).json(error.message);
+    }
+};
+exports.listCampaignsV3 = listCampaignsV3;
 const getMyPost = async (req, res) => {
     try {
         const campaigns = await campaignService.getMyPost(Number(req?.user?.id));
@@ -148,6 +158,16 @@ const pendingListCampaigns = async (req, res) => {
     }
 };
 exports.pendingListCampaigns = pendingListCampaigns;
+const UserspendingListCampaigns = async (req, res) => {
+    try {
+        const campaigns = await campaignService.UserPendingPendingCampaigns(Number(req?.user?.id));
+        res.json(campaigns);
+    }
+    catch (error) {
+        res.status(500).json(error.message);
+    }
+};
+exports.UserspendingListCampaigns = UserspendingListCampaigns;
 const counselorListCampaigns = async (_req, res) => {
     try {
         const campaigns = await campaignService.counselorlistCampaigns();

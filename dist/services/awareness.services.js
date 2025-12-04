@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteContentPost = exports.updateCampaign = exports.listFeedbacks = exports.submitFeedback = exports.addComment = exports.getCampaignById = exports.counselorlistCampaigns = exports.MyPendingPendingCampaigns = exports.moderatorlistCampaigns = exports.getMyPost = exports.listCampaignsAll = exports.listCampaigns = exports.updateCampaignIsPostApproved = exports.updateCampaignStatus = exports.createCampaign = void 0;
+exports.deleteContentPost = exports.updateCampaign = exports.listFeedbacks = exports.submitFeedback = exports.addComment = exports.getCampaignById = exports.counselorlistCampaigns = exports.UserPendingPendingCampaigns = exports.MyPendingPendingCampaigns = exports.moderatorlistCampaigns = exports.getMyPost = exports.listCampaignsAllV3 = exports.listCampaignsAll = exports.listCampaigns = exports.updateCampaignIsPostApproved = exports.updateCampaignStatus = exports.createCampaign = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 const createCampaign = async (role, data) => {
     try {
@@ -183,6 +183,65 @@ const listCampaignsAll = async () => {
     }
 };
 exports.listCampaignsAll = listCampaignsAll;
+const listCampaignsAllV3 = async () => {
+    try {
+        const response = await prisma_1.default.awarenessCampaign.findMany({
+            where: { isDeleted: false },
+            include: {
+                createdBy: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        profilePic: true,
+                        role: true,
+                    },
+                },
+                images: true,
+                comments: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true,
+                                middleName: true,
+                                suffix: true,
+                                email: true,
+                                profilePic: true,
+                            },
+                        },
+                    },
+                },
+                feedbacks: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true,
+                                middleName: true,
+                                suffix: true,
+                                email: true,
+                                profilePic: true,
+                            },
+                        },
+                    },
+                },
+            },
+            orderBy: { createdAt: "desc" },
+        });
+        return response?.map((item) => ({
+            ...item,
+            createdBy: item?.createdBy,
+            createdByRole: item?.createdBy?.role,
+        }));
+    }
+    catch (error) {
+        throw new Error(`Failed to fetch campaigns: ${error}`);
+    }
+};
+exports.listCampaignsAllV3 = listCampaignsAllV3;
 const getMyPost = async (id) => {
     try {
         const response = await prisma_1.default.awarenessCampaign.findMany({
@@ -360,6 +419,64 @@ const MyPendingPendingCampaigns = async (id) => {
     }
 };
 exports.MyPendingPendingCampaigns = MyPendingPendingCampaigns;
+const UserPendingPendingCampaigns = async (id) => {
+    try {
+        const response = await prisma_1.default.awarenessCampaign.findMany({
+            where: { isPostApproved: false, isDeleted: false },
+            include: {
+                createdBy: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        profilePic: true,
+                        role: true,
+                    },
+                },
+                images: true,
+                comments: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true,
+                                middleName: true,
+                                suffix: true,
+                                email: true,
+                                profilePic: true,
+                            },
+                        },
+                    },
+                },
+                feedbacks: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true,
+                                middleName: true,
+                                suffix: true,
+                                email: true,
+                                profilePic: true,
+                            },
+                        },
+                    },
+                },
+            },
+            orderBy: { createdAt: "desc" },
+        });
+        return response?.map((item) => ({
+            ...item,
+            createdBy: item?.isAnonymous ? "Anonymous" : item?.createdBy,
+        }));
+    }
+    catch (error) {
+        throw new Error(`Failed to fetch campaigns: ${error}`);
+    }
+};
+exports.UserPendingPendingCampaigns = UserPendingPendingCampaigns;
 const counselorlistCampaigns = async () => {
     try {
         const response = await prisma_1.default.awarenessCampaign.findMany({

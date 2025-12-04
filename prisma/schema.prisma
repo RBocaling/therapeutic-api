@@ -367,6 +367,7 @@ model AwarenessCampaign {
   endDate       DateTime?
   audienceTags  String?
   isPostApproved Boolean @default(false)
+  isPin Boolean @default(false)
   impressions   Int             @default(0)
   createdById   Int
   createdBy     User            @relation("CreatedCampaigns", fields: [createdById], references: [id])

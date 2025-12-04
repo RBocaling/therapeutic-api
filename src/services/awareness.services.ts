@@ -178,7 +178,10 @@ export const listCampaignsAll = async () => {
           },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: [
+        { isPin: "desc" },
+        { createdAt: "desc" },
+      ],
     });
     return response?.map((item: any) => ({
       ...item,
@@ -305,7 +308,14 @@ export const getMyPost = async (id: number) => {
 export const moderatorlistCampaigns = async () => {
   try {
     const response = await prisma.awarenessCampaign.findMany({
-      where: { isDeleted: false },
+      where: {
+        isDeleted: false,
+        createdBy: {
+          role: {
+            in: ["MODERATOR", "COUNSELOR"],
+          },
+        },
+      },
       include: {
         createdBy: {
           select: {
@@ -348,22 +358,22 @@ export const moderatorlistCampaigns = async () => {
           },
         },
       },
-      orderBy: { createdAt: "desc" },
+      // order pinned campaigns first, then newest first
+      orderBy: [
+        { isPin: "desc" }, 
+        { createdAt: "desc" },
+      ],
     });
-    return response
-      ?.filter(
-        (item: any) =>
-          item?.createdBy?.role === "MODERATOR" ||
-          item?.createdBy?.role === "COUNSELOR"
-      )
-      ?.map((item: any) => ({
-        ...item,
-        createdBy: item?.isAnonymous ? "Anonymous" : item?.createdBy,
-      }));
+
+    return response?.map((item: any) => ({
+      ...item,
+      createdBy: item?.isAnonymous ? "Anonymous" : item?.createdBy,
+    }));
   } catch (error) {
     throw new Error(`Failed to fetch campaigns: ${error}`);
   }
 };
+
 
 export const MyPendingPendingCampaigns = async (id: number) => {
   try {
@@ -733,6 +743,26 @@ export const updateCampaign = async (
       include: {
         images: true,
       },
+    });
+  } catch (error) {
+    throw new Error(`Failed to update campaign: ${error}`);
+  }
+};
+export const updateCampaignPin = async (
+  id: number,
+   isPin: boolean
+) => {
+  try {
+    const campaign = await prisma.awarenessCampaign.findUnique({
+      where: { id },
+    });
+    if (!campaign) throw new Error("Campaign not found");
+
+    return await prisma.awarenessCampaign.update({
+      where: { id },
+      data: {
+      isPin,
+      }
     });
   } catch (error) {
     throw new Error(`Failed to update campaign: ${error}`);

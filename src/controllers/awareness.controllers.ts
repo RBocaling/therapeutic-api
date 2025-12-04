@@ -243,6 +243,20 @@ export const updateCampaign = async (req: Request, res: Response) => {
   }
 };
 
+
+export const updateCampaignPin = async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    const { isPin } = req.body;
+
+    const updated = await campaignService.updateCampaignPin(id, isPin);
+
+    res.status(200).json({ success: true, data: updated });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 export const deleteContentPost = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);

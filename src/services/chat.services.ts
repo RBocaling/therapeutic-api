@@ -307,6 +307,7 @@ export const getChatRequest = async () => {
     return prisma.chatRequest.findMany({
       where: { isDeleted: false },
       include: { user: true, counselor: true },
+      orderBy: [ { createdAt: "desc" }],
     });
   } catch (error: any) {
     throw new Error(error);
