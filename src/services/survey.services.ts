@@ -205,6 +205,38 @@ export const getUserSurveyResults = async (userId: number) => {
   }
 };
 
+
+export const getUserPercentageScore = async (userId: number)=>{
+  try {
+    const responses = await prisma.userResponse.findMany({
+      where: { userId },
+      include: {
+        surveyForm: {
+          select: { id: true, title: true, code: true },
+        },
+      },
+      orderBy: [{ surveyFormId: "asc" }, { attemptNumber: "asc" }],
+    });
+
+    const filtered = responses.filter(
+      (item) => item.surveyForm?.code === "MHI-38"
+    );
+    const totalScore = filtered.reduce(
+      (sum:number, item: any) => sum + Number(item.score),
+      0
+    );
+
+    const maxTotalScore = filtered.length * 228;
+
+    const percentage = (totalScore / maxTotalScore) * 100;
+return percentage
+  } catch (error:any) {
+    throw new Error(error)
+  }
+}
+
+
+
 export const getSurveyHistory = async (userProfileId: number) => {
   try {
     const responses = await prisma.userResponse.findMany({

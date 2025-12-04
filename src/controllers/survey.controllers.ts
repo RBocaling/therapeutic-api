@@ -213,6 +213,15 @@ export const getAnalyticsController = async (req: Request, res: Response) => {
   }
 };
 
+export const getUserPercentageScore = async (req: Request, res: Response) => {
+  try {
+    const userId = Number(req.params?.id);
+    const data = await surveyService.getUserPercentageScore(userId);
+    res.status(200).json({ success: true, data });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 export const getCriticalAlertsController = async (
   req: Request,
   res: Response

@@ -46,6 +46,11 @@ router.get(
 // anay;isis
 router.get("/analytics", authenticateUser, survey.getAnalyticsController);
 router.get(
+  "/getUserPercentageScore/:id",
+  authenticateUser,
+  survey.getUserPercentageScore
+);
+router.get(
   "/analytics/critical-alerts",
   authenticateUser,
   survey.getCriticalAlertsController
