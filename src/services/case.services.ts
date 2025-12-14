@@ -1,6 +1,7 @@
 import { CaseIntervention } from "./../../node_modules/.prisma/client/index.d";
 // src/services/case.services.ts
 import prisma from "../config/prisma";
+import { createAudit } from "./audit.services";
 
 export const createCase = async (
   counselorId: number,
@@ -25,6 +26,7 @@ export const createCase = async (
       },
     });
 
+
     if (data.evidenceUrls?.length) {
       await tx.caseEvidence.createMany({
         data: data.evidenceUrls.map((url) => ({
@@ -33,6 +35,12 @@ export const createCase = async (
         })),
       });
     }
+
+    await createAudit({
+      description: "CREATE CASE",
+      type: "CASE MANAGEMENT",
+      userId: Number(data?.userId),
+    });
 
     return created;
   });
@@ -55,11 +63,14 @@ export const getCaseById = async (caseId: number) => {
     include: { evidences: true, user: true, counselor: true },
   });
 };
-export const updateCaseStatus = async (caseId: number, status: any, refferedTo:any) => {
+export const updateCaseStatus = async (caseId: number, status: any, refferedTo: any) => {
+  
   return prisma.caseManagement.update({
     where: { id: caseId },
     data: { status, RefferedTo:refferedTo },
   });
+
+  
 };
 
 interface InterventionInput {

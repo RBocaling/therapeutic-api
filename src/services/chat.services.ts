@@ -1,5 +1,6 @@
 import prisma from "../config/prisma";
 import { sendMail } from "../utils/mailer";
+import { createAudit } from "./audit.services";
 import { createNotification } from "./notification.services";
 
 export const createSession = async (
@@ -37,6 +38,14 @@ export const createSession = async (
         data,
         include: { messages: true },
       });
+
+      if (counselorId || moderatorId) {
+        await createAudit({
+          description: "CREATE CHAT",
+          type: "CHAT REQUEST",
+          userId: Number(counselorId ?? moderatorId),
+        });
+      }
     }
 
     return session;

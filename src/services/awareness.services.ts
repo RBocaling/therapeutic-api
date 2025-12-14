@@ -1,4 +1,5 @@
 import prisma from "../config/prisma";
+import { createAudit } from "./audit.services";
 
 export const createCampaign = async (
   role: any,
@@ -21,6 +22,11 @@ export const createCampaign = async (
       throw new Error("Start date is required for event campaigns.");
     }
 
+    await createAudit({
+      description: "Add Awareness Camapaign",
+      type: "AWARENESS CAMPAIGN",
+      userId: Number(data?.createdById),
+    });
     return await prisma.awarenessCampaign.create({
       data: {
         isAnonymous: data?.isAnonymous,

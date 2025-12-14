@@ -1,4 +1,5 @@
 import prisma from "../config/prisma";
+import { createAudit } from "./audit.services";
 
 
 export const createCourse = async (data: {
@@ -41,6 +42,13 @@ export const createCourse = async (data: {
           uploadedById: data.uploadedById,
         },
       });
+
+      await createAudit({
+        description: "Upload Content",
+        type: "CONTENT MANAGEMENT",
+        userId: Number(data?.uploadedById),
+      });
+
 
       if (data.type === "MODULES" && data.modules) {
         for (const mod of data.modules) {
@@ -238,7 +246,9 @@ export const updateCourse = async (
   data: { title?: string; description?: string }
 ) => {
   try {
+    
     return await prisma.contentCourse.update({ where: { id }, data });
+    
   } catch (error: any) {
     throw new Error(error.message || "Failed to update course");
   }

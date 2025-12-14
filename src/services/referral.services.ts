@@ -1,4 +1,5 @@
 import prisma from "../config/prisma";
+import { createAudit } from "./audit.services";
 import { createNotification } from "./notification.services";
 
 export const createReferral = async (payload: {
@@ -29,6 +30,12 @@ export const createReferral = async (payload: {
     });
     if (!referrer) throw new Error("Referrer not found");
 
+    await createAudit({
+      description: "Reffered User",
+      type: "REFERRAL",
+      userId: Number(payload.referrerId),
+    });
+    
     if (payload.counselorId) {
       const existingReferral = await prisma.referral.findFirst({
         where: {

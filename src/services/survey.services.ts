@@ -8,6 +8,7 @@ import {
 } from "../utils/compute.analytics";
 import { computeProgress } from "../utils/computeProgress";
 import { computeSurveyScore } from "../utils/surveyScoring";
+import { createAudit } from "./audit.services";
 
 export const seedSurveys = async (surveys: any[]) => {
   try {
@@ -470,6 +471,11 @@ export const createNote = async (data: {
           select: { id: true, firstName: true, lastName: true, role: true },
         },
       },
+    });
+    await createAudit({
+      description: "ADD NOTE",
+      type: "ADD NOTE",
+      userId: Number(data?.counselorId),
     });
 
     return note;
