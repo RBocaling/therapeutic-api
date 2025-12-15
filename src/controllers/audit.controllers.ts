@@ -9,6 +9,17 @@ export const getAllAuditsController = async (_: Request, res: Response) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+export const createAuditsController = async (req: Request, res: Response) => {
+  try {
+    const audits = await auditService.createAudit({
+      ...req.body,
+      userId: Number(req.user?.id),
+    });
+    res.json({ success: true, data: audits });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 export const getUserAuditsController = async (req: Request, res: Response) => {
   try {

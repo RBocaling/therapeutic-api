@@ -1,5 +1,6 @@
 import prisma from "../config/prisma";
 import { ReminderTiming, SessionStatus } from "@prisma/client";
+import { createAudit } from "./audit.services";
 
 export const createSchedule = async (payload: {
   counselorId: number;
@@ -37,6 +38,11 @@ export const createSchedule = async (payload: {
       },
     });
 
+     await createAudit({
+       description: "New Counseling Session Scheduled",
+       type: "SESSION_SCHEDULING",
+       userId: payload.counselorId,
+     });
     await prisma.notification.create({
       data: {
         recipientId: payload.userId,
