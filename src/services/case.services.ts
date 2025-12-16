@@ -66,14 +66,33 @@ export const getCaseById = async (caseId: number) => {
     include: { evidences: true, user: true, counselor: true },
   });
 };
-export const updateCaseStatus = async (caseId: number, status: any, refferedTo: any) => {
+export const updateCaseStatus = async (caseId: number, status: any, refferedTo: any, id:number) => {
   
-  return prisma.caseManagement.update({
-    where: { id: caseId },
-    data: { status, RefferedTo:refferedTo },
-  });
   
-
+   const res = await prisma.caseManagement.update({
+     where: { id: caseId },
+     data: { status, RefferedTo: refferedTo },
+     include: {
+       user: {
+         select: {
+           firstName: true,
+           lastName:true
+         },
+       },
+     },
+   });
+  
+   console.log("testest", res);
+   
+  if (status === "REFFERED_TO") {
+    await createAudit({
+      description: `${res?.user?.firstName} ${res?.user?.lastName} Referred to ${refferedTo}`,
+      type: "CASE REFERRED TO",
+      userId: Number(id),
+    });
+  }
+    
+    return res;
   
 };
 

@@ -73,7 +73,7 @@ export const getCaseById = async (req: Request, res: Response) => {
   }
 };
 
-export const updateCaseStatus = async (req: Request, res: Response) => {
+export const updateCaseStatus = async (req: any, res: Response) => {
   try {
     const caseId = Number(req.params.caseId);
      const { status, refferedTo } = req.body;
@@ -86,7 +86,8 @@ export const updateCaseStatus = async (req: Request, res: Response) => {
     const result = await caseService.updateCaseStatus(
       caseId,
       status,
-      refferedTo
+      refferedTo,
+      Number(req.user.id)
     );
 
     res.json({ success: true, data: result });
