@@ -39,15 +39,16 @@ export const createSession = async (
         include: { messages: true },
       });
 
-      if (counselorId || moderatorId) {
-        await createAudit({
-          description: "CREATE CHAT",
-          type: "CHAT REQUEST",
-          userId: Number(counselorId ?? moderatorId),
-        });
-      }
+      
     }
 
+    if (counselorId || moderatorId) {
+      await createAudit({
+        description: "CHAT SESSON",
+        type: "CHAT SESSON",
+        userId: Number(counselorId ?? moderatorId),
+      });
+    }
     return session;
   } catch (error: any) {
     throw new Error(error);

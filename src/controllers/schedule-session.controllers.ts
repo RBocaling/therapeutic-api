@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import * as scheduleService from "../services/schedule-session.services";
+import { createAudit } from "../services/audit.services";
 
 
 export const createSchedule = async (req: Request, res: Response) => {
@@ -85,6 +86,11 @@ export const updateScheduleStatus = async (req: Request, res: Response) => {
       id,
       status as any
     );
+    await createAudit({
+      description: ` Session Schedule ${status}`,
+      type: "SESSION SCHEDULE STATUS",
+      userId: Number(req.user?.id),
+    });
     res.json(updated);
   } catch (err: any) {
     res.status(400).json({ message: err.message });

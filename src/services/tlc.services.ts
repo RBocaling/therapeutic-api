@@ -108,7 +108,13 @@ export const getPlanWithDaysById = async (planId: number) => {
   try {
     return prisma.guidedTLCPlan.findUnique({
       where: { id: planId },
-      include: { days: { orderBy: { dayNumber: "asc" } } },
+      include: {
+        days: { orderBy: { dayNumber: "asc" } }, user: {
+          select: {
+            firstName: true,
+            lastName:true
+          }
+      } },
     });
   } catch (error) {
     throw new Error(`Error fetching plan: ${error}`);

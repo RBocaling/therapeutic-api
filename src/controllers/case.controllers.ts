@@ -1,6 +1,7 @@
 // src/controllers/case.controllers.ts
 import { Request, Response } from "express";
 import * as caseService from "../services/case.services";
+import { createAudit } from "../services/audit.services";
 
 export const createCase = async (req: Request, res: Response) => {
   try {
@@ -77,7 +78,11 @@ export const updateCaseStatus = async (req: Request, res: Response) => {
     const caseId = Number(req.params.caseId);
      const { status, refferedTo } = req.body;
 
-
+ await createAudit({
+   description: "Update Case Status",
+   type: "CASE STATUS",
+   userId: Number(req.user?.id),
+ });
     const result = await caseService.updateCaseStatus(
       caseId,
       status,

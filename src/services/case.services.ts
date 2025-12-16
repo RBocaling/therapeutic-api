@@ -24,7 +24,10 @@ export const createCase = async (
         description: data.description,
         intervention: data?.intervention,
       },
-    });
+      include: {
+        user:true
+      }
+    }, );
 
 
     if (data.evidenceUrls?.length) {
@@ -37,7 +40,7 @@ export const createCase = async (
     }
 
     await createAudit({
-      description: "CREATE CASE",
+      description: `Create Case For ${created?.user?.firstName}`,
       type: "CASE MANAGEMENT",
       userId: Number(data?.userId),
     });
@@ -69,6 +72,7 @@ export const updateCaseStatus = async (caseId: number, status: any, refferedTo: 
     where: { id: caseId },
     data: { status, RefferedTo:refferedTo },
   });
+  
 
   
 };

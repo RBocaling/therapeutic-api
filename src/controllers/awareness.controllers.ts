@@ -233,6 +233,11 @@ export const updateCampaign = async (req: Request, res: Response) => {
       images: body.images,
     });
 
+    await auditService.createAudit({
+      description: "Update Campaign",
+      type: "UPDATE CAMPAIGN",
+      userId: req?.user?.id,
+    });
     res.status(200).json({ success: true, data: updated });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
